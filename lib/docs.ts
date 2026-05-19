@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { create, insertMultiple, search } from '@orama/orama';
 import matter from 'gray-matter';
 
 export type DocEntry = {
@@ -140,18 +141,40 @@ export function getNavTree(): NavNode[] {
   return root.children;
 }
 
-export function searchDocs(query: string): DocEntry[] {
+export async function searchDocs(query: string): Promise<DocEntry[]> {
   const needle = query.trim().toLowerCase();
   if (needle.length < 2) {
     return [];
   }
 
-  return getAllDocEntries()
-    .filter((entry) => {
-      const haystack = `${entry.title}\n${entry.content}`.toLowerCase();
-      return haystack.includes(needle);
-    })
-    .slice(0, 25);
+  const entries = getAllDocEntries();
+  const db = create({
+    schema: {
+      content: 'string',
+      href: 'string',
+      title: 'string',
+    },
+  });
+
+  await insertMultiple(
+    db,
+    entries.map((entry) => ({
+      content: entry.content,
+      href: entry.href,
+      title: entry.title,
+    })),
+  );
+
+  const results = await search(db, {
+    limit: 25,
+    properties: ['title', 'content'],
+    term: needle,
+  });
+  const byHref = new Map(entries.map((entry) => [entry.href, entry]));
+
+  return results.hits
+    .map((hit) => byHref.get(String(hit.document.href)))
+    .filter((entry): entry is DocEntry => Boolean(entry));
 }
 
 export function normalizeDocHref(currentSlug: string[], href: string): string {

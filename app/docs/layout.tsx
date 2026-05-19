@@ -64,6 +64,9 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
             <Link className="text-zinc-600 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50" href="/docs/99-generated/concept-coverage">
               Concepts
             </Link>
+            <Link className="text-zinc-600 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50" href="/api-reference">
+              API
+            </Link>
           </nav>
         </div>
       </header>

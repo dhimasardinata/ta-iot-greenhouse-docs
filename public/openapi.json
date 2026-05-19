@@ -1,0 +1,214 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TA IoT Greenhouse API",
+    "version": "1.0.0",
+    "description": "Ringkasan OpenAPI untuk endpoint utama yang didokumentasikan pada sistem TA IoT Greenhouse."
+  },
+  "servers": [
+    {
+      "url": "https://example.com",
+      "description": "Ganti dengan domain backend Laravel produksi."
+    }
+  ],
+  "paths": {
+    "/api/sensor": {
+      "post": {
+        "summary": "Menerima data sensor dari node",
+        "tags": ["Sensor"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SensorPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Data sensor diterima"
+          },
+          "422": {
+            "description": "Payload tidak valid"
+          }
+        }
+      }
+    },
+    "/api/average-sensor-data": {
+      "get": {
+        "summary": "Mengambil rata-rata data sensor",
+        "tags": ["Sensor"],
+        "parameters": [
+          {
+            "name": "gh_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID greenhouse"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rata-rata data sensor"
+          }
+        }
+      }
+    },
+    "/api/schedules": {
+      "get": {
+        "summary": "Mengambil jadwal aktuator",
+        "tags": ["Schedule"],
+        "parameters": [
+          {
+            "name": "gh_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID greenhouse"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar jadwal"
+          }
+        }
+      },
+      "post": {
+        "summary": "Menyimpan jadwal aktuator",
+        "tags": ["Schedule"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Jadwal disimpan"
+          },
+          "422": {
+            "description": "Jadwal tidak valid"
+          }
+        }
+      }
+    },
+    "/api/update-thresholds": {
+      "post": {
+        "summary": "Memperbarui threshold sensor greenhouse",
+        "tags": ["Threshold"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThresholdPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Threshold diperbarui"
+          },
+          "422": {
+            "description": "Threshold tidak valid"
+          }
+        }
+      }
+    },
+    "/api/firmware": {
+      "get": {
+        "summary": "Mengambil metadata firmware OTA",
+        "tags": ["OTA"],
+        "responses": {
+          "200": {
+            "description": "Metadata firmware"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SensorPayload": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "number"
+          },
+          "humidity": {
+            "type": "number"
+          },
+          "light": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["node_id"]
+      },
+      "SchedulePayload": {
+        "type": "object",
+        "properties": {
+          "gh_id": {
+            "type": "integer"
+          },
+          "schedules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "actuator": {
+                  "type": "string"
+                },
+                "start_time": {
+                  "type": "string"
+                },
+                "end_time": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required": ["gh_id", "schedules"]
+      },
+      "ThresholdPayload": {
+        "type": "object",
+        "properties": {
+          "gh_id": {
+            "type": "integer"
+          },
+          "thresholds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "required": ["gh_id", "thresholds"]
+      }
+    }
+  }
+}
