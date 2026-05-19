@@ -1,0 +1,80 @@
+---
+title: "node/lib/NodeCore/storage/RtcManager.cpp"
+---
+
+# node/lib/NodeCore/storage/RtcManager.cpp
+
+File ini mengelola data RTC atau waktu lokal yang tersimpan, terutama untuk membantu timestamp ketika jaringan belum siap.
+
+## Metadata File
+
+| Item | Nilai |
+|---|---|
+| Source file | `node/lib/NodeCore/storage/RtcManager.cpp` |
+| Komponen | Firmware Node |
+| Jenis file | modul penyimpanan lokal |
+| Level | Advanced |
+| Status | Drafted |
+| Terakhir diperiksa | 2026-05-19 |
+| Jumlah baris | 415 |
+
+## Kenapa File Ini Ada
+
+Dalam sistem TA IoT Greenhouse, file ini menjaga satu bagian tanggung jawab agar tidak bercampur dengan modul lain. Pembagian seperti ini membuat node, gateway, web, dan tooling lebih mudah dibaca oleh pemula: satu file dipelajari sebagai satu peran.
+
+## Kapan File Ini Dipakai
+
+File ini dipakai ketika bagian Firmware Node membutuhkan fungsi modul penyimpanan lokal. Relasi pemanggil yang eksplisit hanya dianggap pasti jika terlihat dari include, import, atau pemanggilan di source. Jika relasi runtime tidak tertulis langsung di file, dokumentasi ini tidak menebaknya sebagai fakta.
+
+## Bukti dari Source
+
+| Jenis bukti | Ditemukan di source |
+|---|---|
+| Include | `storage/RtcManager.h`, `algorithm`, `stddef.h`, `string.h`, `support/Crc32.h`, `system/Logger.h` |
+| Class/Struct | `alignas`, `SlotCopy` |
+| Fungsi C/C++ | `seqBefore`, `RtcManager::resetDataInMemory`, `RtcManager::calculateHeaderCrc`, `Crc32::compute`, `RtcManager::calculateRecordCrc`, `RtcManager::validateHeader`, `RtcManager::isRecordValid`, `RtcManager::setSlotFromPayload`, `RtcManager::payloadFromSlot`, `RtcManager::readRaw`, `RtcManager::writeRaw`, `RtcManager::writeData`, `writeRaw`, `RtcManager::legacyCrcValid`, `RtcManager::tryMigrateFromLegacy`, `RtcManager::salvageFromCurrentSlots`, `RtcManager::sanitizeFrontSlots`, `RtcManager::loadAndHeal`, `sanitizeFrontSlots`, `RtcManager::init`, `RtcManager::append`, `writeData`, `RtcManager::isFull`, `RtcManager::peekEx` |
+
+## Alur Masuk dan Keluar
+
+| Arah | Penjelasan |
+|---|---|
+| Data masuk | record sensor, path LittleFS, status cache, timestamp, dan data yang belum terkirim |
+| Data keluar | record cache, hasil baca/tulis LittleFS, dan status retry data |
+
+## Hal yang Perlu Diperhatikan
+
+- Jika kontrak input berubah tetapi file pemanggil tidak ikut diperbarui, error bisa muncul di runtime atau saat compile.
+- LittleFS/cache bisa gagal jika filesystem belum mount, ruang penuh, format data berubah, atau listrik mati saat tulis.
+
+## Bagian untuk Pemula
+
+Mulai dari nama file dan foldernya dulu. Folder menunjukkan area sistem, sedangkan nama file menunjukkan tugas kecilnya. Setelah itu, baca daftar include/import dan nama fungsi untuk melihat file ini bekerja sama dengan modul apa.
+
+## Bagian Advanced
+
+Untuk perubahan kode, periksa kontrak data dan efek sampingnya. Pada firmware embedded, perubahan kecil pada buffer, waktu tunggu, koneksi jaringan, cache, atau OTA bisa berdampak ke stabilitas perangkat di greenhouse.
+
+## Preview Source
+
+```cpp
+#include "storage/RtcManager.h"
+#include <algorithm>
+#include <stddef.h>
+#include <string.h>
+#include "support/Crc32.h"
+#include "system/Logger.h"
+namespace {
+struct alignas(4) LegacyRtcSensorDataV1 {
+  uint32_t magic;
+  uint16_t head;
+  uint16_t tail;
+  uint16_t count;
+```
+
+## Hubungan ke Sistem TA
+
+File ini membantu sistem IoT Greenhouse tetap bisa membaca data, menyimpan status, berkomunikasi, diuji, atau dioperasikan sesuai perannya. Dokumentasi ini sengaja menghubungkan file ke konteks TA, bukan hanya menjelaskan sintaks kode.
+
+## Batas Verifikasi
+
+Halaman ini dibuat dari pembacaan source file aktual pada 2026-05-19. Jika ada hubungan yang tidak terlihat langsung dari source, bagian tersebut ditulis sebagai belum terkonfirmasi, bukan diasumsikan.

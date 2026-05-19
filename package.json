@@ -1,0 +1,40 @@
+{
+  "name": "ta-iot-greenhouse-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "ensure:frontmatter": "tsx scripts/ensure-frontmatter.ts",
+    "validate:docs": "tsx scripts/validate-docs.ts"
+  },
+  "dependencies": {
+    "fumadocs-core": "latest",
+    "fumadocs-mdx": "latest",
+    "fumadocs-ui": "latest",
+    "katex": "latest",
+    "lucide-react": "latest",
+    "mermaid": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "shiki": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.11",
+    "@types/mdx": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "fast-glob": "latest",
+    "gray-matter": "latest",
+    "markdownlint-cli2": "latest",
+    "prettier": "latest",
+    "tailwindcss": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}

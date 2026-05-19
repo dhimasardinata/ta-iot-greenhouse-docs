@@ -1,0 +1,82 @@
+---
+title: "node/lib/NodeCore/interfaces/ICacheManager.h"
+---
+
+# node/lib/NodeCore/interfaces/ICacheManager.h
+
+File ini mendefinisikan kontrak ICacheManager. Kontrak seperti ini dipakai agar modul lain bisa bergantung pada kemampuan yang jelas tanpa harus tahu detail class konkret yang menjalankannya.
+
+## Metadata File
+
+| Item | Nilai |
+|---|---|
+| Source file | `node/lib/NodeCore/interfaces/ICacheManager.h` |
+| Komponen | Firmware Node |
+| Jenis file | kontrak interface firmware |
+| Level | Menengah |
+| Status | Drafted |
+| Terakhir diperiksa | 2026-05-19 |
+| Jumlah baris | 54 |
+
+## Kenapa File Ini Ada
+
+Dalam sistem TA IoT Greenhouse, file ini menjaga satu bagian tanggung jawab agar tidak bercampur dengan modul lain. Pembagian seperti ini membuat node, gateway, web, dan tooling lebih mudah dibaca oleh pemula: satu file dipelajari sebagai satu peran.
+
+## Kapan File Ini Dipakai
+
+File ini dipakai ketika bagian Firmware Node membutuhkan fungsi kontrak interface firmware. Relasi pemanggil yang eksplisit hanya dianggap pasti jika terlihat dari include, import, atau pemanggilan di source. Jika relasi runtime tidak tertulis langsung di file, dokumentasi ini tidak menebaknya sebagai fakta.
+
+## Bukti dari Source
+
+| Jenis bukti | Ditemukan di source |
+|---|---|
+| Include | `Arduino.h` |
+| Class/Struct | `CacheReadError`, `ICacheManager` |
+| Enum | `CacheReadError` |
+| Fungsi C/C++ | `init`, `reset`, `get_status`, `get_size` |
+| Fungsi JavaScript | `overhead`, `calls` |
+| Macro | `I_CACHE_MANAGER_H` |
+
+## Alur Masuk dan Keluar
+
+| Arah | Penjelasan |
+|---|---|
+| Data masuk | data runtime dari modul pemanggil dan konfigurasi firmware yang relevan |
+| Data keluar | hasil pemrosesan yang dikembalikan ke modul pemanggil |
+
+## Hal yang Perlu Diperhatikan
+
+- Jika kontrak input berubah tetapi file pemanggil tidak ikut diperbarui, error bisa muncul di runtime atau saat compile.
+
+## Bagian untuk Pemula
+
+Mulai dari nama file dan foldernya dulu. Folder menunjukkan area sistem, sedangkan nama file menunjukkan tugas kecilnya. Setelah itu, baca daftar include/import dan nama fungsi untuk melihat file ini bekerja sama dengan modul apa.
+
+## Bagian Advanced
+
+Untuk perubahan kode, periksa kontrak data dan efek sampingnya. Pada firmware embedded, perubahan kecil pada buffer, waktu tunggu, koneksi jaringan, cache, atau OTA bisa berdampak ke stabilitas perangkat di greenhouse.
+
+## Preview Source
+
+```cpp
+#ifndef I_CACHE_MANAGER_H
+#define I_CACHE_MANAGER_H
+#include <Arduino.h>
+enum class CacheReadError { NONE, CACHE_EMPTY, FILE_READ_ERROR, OUT_OF_MEMORY, CORRUPT_DATA, SCANNING };
+// ============================================================================
+// CRTP Base Class for Zero-Overhead Cache Interface
+// ============================================================================
+// CRTP provides compile-time polymorphism without virtual function overhead:
+// - No vtable pointer (saves 4 bytes per object)
+// - No indirect function calls (enables inlining)
+template <typename Derived>
+class ICacheManager {
+```
+
+## Hubungan ke Sistem TA
+
+File ini membantu sistem IoT Greenhouse tetap bisa membaca data, menyimpan status, berkomunikasi, diuji, atau dioperasikan sesuai perannya. Dokumentasi ini sengaja menghubungkan file ke konteks TA, bukan hanya menjelaskan sintaks kode.
+
+## Batas Verifikasi
+
+Halaman ini dibuat dari pembacaan source file aktual pada 2026-05-19. Jika ada hubungan yang tidak terlihat langsung dari source, bagian tersebut ditulis sebagai belum terkonfirmasi, bukan diasumsikan.
