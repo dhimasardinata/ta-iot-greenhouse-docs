@@ -73,7 +73,7 @@ Contoh konsep:
 - class cache manager mengurus cache,
 - class network manager mengurus jaringan.
 
-Nama class nyata harus diverifikasi dari kode.
+Nama class nyata mengikuti kode yang sedang dibaca.
 
 ## Kesimpulan
 

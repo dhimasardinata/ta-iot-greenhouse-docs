@@ -49,6 +49,6 @@ Gateway memiliki penerima data dan WebSocket di:
 
 ## Status Bukti
 
-Belum terlihat file hasil uji QoS node ke gateway. Dokumentasi file-by-file harus memastikan detail protokol lokal dari implementasi `ApiClient` dan `SensorDataManager`.
+Belum terlihat file hasil uji QoS node ke gateway. Detail protokol lokal dibaca dari implementasi `ApiClient` dan `SensorDataManager`.
 
 Lanjutkan ke [Uji Gateway dan Aktuator](./uji-gateway-aktuator.md).

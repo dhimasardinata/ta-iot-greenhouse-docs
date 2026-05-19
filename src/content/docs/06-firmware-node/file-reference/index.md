@@ -8,7 +8,7 @@ Bagian ini akan menjadi pintu masuk dokumentasi file-by-file firmware node.
 
 ## Status Saat Ini
 
-Semua file node yang relevan masih `Pending` di [Coverage Report](../../14-complete-file-walkthrough/coverage-report.md). Halaman detail per file belum dibuat pada batch ini.
+Semua file node yang relevan tercatat di [Coverage Report](../../14-complete-file-walkthrough/coverage-report.md). Halaman detail membantu pembaca masuk dari file utama ke modul pendukung.
 
 ## Kelompok File Node
 
@@ -39,4 +39,4 @@ Semua file node yang relevan masih `Pending` di [Coverage Report](../../14-compl
 9. `node/lib/NodeCore/storage/CacheManager.h`
 10. `node/lib/NodeCore/ota/OtaManager.h`
 
-Gunakan template wajib dari `goal.md` untuk setiap file.
+Untuk setiap file, baca dari peran file, kapan dipakai, alur data, bagian penting, risiko error, dan cara debug.

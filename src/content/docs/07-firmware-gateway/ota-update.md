@@ -18,7 +18,7 @@ Gateway memiliki mekanisme pengecekan update firmware otomatis.
 
 ## Catatan Penting
 
-Karena `AUTO_OTA_APPLY_ENABLED` bernilai false, firmware otomatis tidak boleh langsung memutus kontrol produksi tanpa alur yang jelas. Detail implementasi OTA perlu dibaca pada bagian `serviceDeferredMaintenance()` dan fungsi terkait di `main.cpp`.
+Karena `AUTO_OTA_APPLY_ENABLED` bernilai false, firmware tidak langsung memutus kontrol produksi secara otomatis. Detail implementasi OTA dibaca pada bagian `serviceDeferredMaintenance()` dan fungsi terkait di `main.cpp`.
 
 ## Risiko
 

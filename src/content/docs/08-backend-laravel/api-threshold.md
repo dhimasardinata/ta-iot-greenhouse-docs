@@ -34,6 +34,6 @@ Gateway mengambil threshold cloud melalui `MyNetworkManager::fetchThresholds()` 
 - user tidak berhak mengubah threshold,
 - cache gateway belum refresh.
 
-Validasi lengkap endpoint harus dicek di route dan controller file-by-file.
+Validasi lengkap endpoint dibaca dari route dan controller file-by-file.
 
 Lanjutkan ke [API Schedule](./api-schedule.md).

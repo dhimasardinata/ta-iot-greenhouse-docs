@@ -25,4 +25,4 @@ Jangan mengarang kolom, relasi, index, atau query jika belum ada bukti.
 
 ## Status
 
-Belum ada file database yang wajib didokumentasikan menurut coverage awal.
+Belum ada file database yang perlu dijelaskan menurut coverage awal.

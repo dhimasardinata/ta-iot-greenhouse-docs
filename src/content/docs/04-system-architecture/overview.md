@@ -44,8 +44,8 @@ Baca arsitektur dari alur data, bukan dari nama teknologi.
 5. Gateway memakai data, threshold, dan jadwal untuk kontrol.
 6. OTA dan keamanan menjaga sistem tetap bisa dirawat dan lebih aman.
 
-## Catatan Verifikasi
+## Catatan Pembacaan
 
-Halaman ini adalah gambaran awal berdasarkan `goal.md` dan inventory. Detail fungsi tiap file harus diverifikasi di dokumentasi file-by-file.
+Halaman ini adalah gambaran besar. Detail fungsi tiap file dibahas di dokumentasi file-by-file agar pembaca bisa melihat hubungan antara arsitektur dan implementasi.
 
 Lanjutkan ke [Arsitektur Cloud-Edge](./arsitektur-cloud-edge.md).

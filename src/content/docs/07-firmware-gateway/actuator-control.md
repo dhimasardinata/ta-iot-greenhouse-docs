@@ -23,7 +23,7 @@ Actuator control adalah bagian gateway yang mengubah keputusan software menjadi 
 
 1. schedule,
 2. threshold,
-3. hold jika threshold tidak boleh dievaluasi.
+3. hold jika threshold sedang tidak dievaluasi.
 
 Exhaust dan dehumidifier dipengaruhi kelembapan atau fog. Blower dipengaruhi suhu.
 

@@ -55,7 +55,7 @@ Untuk perubahan kode, periksa kontrak data dan efek sampingnya. Pada firmware em
 ## Preview Source
 
 ```cpp
-Belum terkonfirmasi dari kode: source file tidak ditemukan saat generator dijalankan.
+Belum terlihat dari kode: source file tidak ditemukan saat generator dijalankan.
 ```
 
 ## Hubungan ke Sistem TA

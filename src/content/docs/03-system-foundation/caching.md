@@ -35,7 +35,7 @@ Caching juga punya risiko:
 
 ## Hal yang Harus Dijelaskan di File-by-File
 
-Dokumentasi file cache harus menjelaskan:
+Halaman file cache menjelaskan:
 
 - format data cache,
 - lokasi penyimpanan,

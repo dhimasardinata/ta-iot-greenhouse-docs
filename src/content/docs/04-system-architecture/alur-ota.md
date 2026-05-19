@@ -39,6 +39,6 @@ sequenceDiagram
 - `gateway/platformio.ini`,
 - `web/OtaController.php`.
 
-Detail endpoint dan mekanisme validasi harus diverifikasi dari kode.
+Detail endpoint dan mekanisme validasi dibaca dari kode.
 
 Lanjutkan ke [Alur Caching](./alur-caching.md).

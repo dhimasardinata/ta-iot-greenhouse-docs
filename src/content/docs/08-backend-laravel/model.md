@@ -24,7 +24,7 @@ File model sebenarnya belum ada dalam snapshot inventory awal. Yang terlihat han
 
 ## Yang Perlu Diverifikasi Nanti
 
-Jika file model tersedia, dokumentasi harus menjelaskan:
+Jika file model tersedia, halaman model menjelaskan:
 
 - nama tabel,
 - fillable/guarded field,

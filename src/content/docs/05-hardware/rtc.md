@@ -37,6 +37,6 @@ Waktu dipakai untuk:
 - zona waktu salah,
 - jadwal aktuator bergeser.
 
-Dokumentasi file-by-file harus menjelaskan sumber waktu mana yang paling dipercaya dan bagaimana fallback dilakukan.
+Halaman file terkait menjelaskan sumber waktu mana yang dipakai lebih dulu dan bagaimana fallback dilakukan saat sumber waktu gagal.
 
 Lanjutkan ke [SD Card](./sd-card.md).

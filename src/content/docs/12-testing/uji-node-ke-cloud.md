@@ -36,7 +36,7 @@ flowchart LR
 
 ## Catatan Keamanan
 
-Source node menunjukkan penggunaan token upload dan HTTPS. Uji harus memastikan token kosong, token salah, dan token benar menghasilkan perilaku yang jelas.
+Source node menunjukkan penggunaan token upload dan HTTPS. Uji token kosong, token salah, dan token benar membantu melihat perilaku keamanan secara jelas.
 
 ## Status Bukti
 

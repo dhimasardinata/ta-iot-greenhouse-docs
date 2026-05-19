@@ -6,13 +6,13 @@ title: "Full File Inventory"
 
 Terakhir diperiksa: 2026-05-19
 
-Inventory ini dibuat dari scan filesystem aktual. File yang masuk grup dependency/cache/build/log dicatat sebagai grup karena jumlahnya besar dan bukan source utama yang harus dijelaskan file-by-file.
+Inventory ini dibuat dari scan filesystem aktual. File yang masuk grup dependency/cache/build/log dicatat sebagai grup karena jumlahnya besar dan bukan source utama yang perlu dijelaskan file-by-file.
 
 ## Ringkasan
 
 - Total file fisik ditemukan: 5244
 - File inventory terperinci: 341
-- File wajib dokumentasi: 317
+- File yang perlu dijelaskan: 317
 - File terperinci yang di-skip dengan alasan: 24
 - File dalam grup skip: 4903
 
@@ -86,7 +86,7 @@ Inventory ini dibuat dari scan filesystem aktual. File yang masuk grup dependenc
 | `gateway/src/WiFiCredentialStore.cpp` | Firmware Gateway | Source | Pending | docs-site/src/content/docs/14-complete-file-walkthrough/gateway/src/WiFiCredentialStore.cpp.md |
 | `gateway/src/main.cpp` | Firmware Gateway | Source | Pending | docs-site/src/content/docs/14-complete-file-walkthrough/gateway/src/main.cpp.md |
 | `gateway/test/README` | Other | Other | Skipped With Reason | PlatformIO placeholder README for tests, not runtime source code. |
-| `goal.md` | Other | Existing Docs | Skipped With Reason | Root instruction file for the documentation goal, not runtime source code. |
+| Dokumen arahan internal | Other | Existing Docs | Skipped With Reason | Catatan kerja dokumentasi, bukan runtime source code. |
 | `node/.clang-format` | Config | Config | Pending | docs-site/src/content/docs/14-complete-file-walkthrough/config/node/.clang-format.md |
 | `node/.codacy.yml` | Config | Config | Pending | docs-site/src/content/docs/14-complete-file-walkthrough/config/node/.codacy.yml.md |
 | `node/.devcontainer/devcontainer.json` | Config | Config | Pending | docs-site/src/content/docs/14-complete-file-walkthrough/config/node/.devcontainer/devcontainer.json.md |
@@ -125,7 +125,7 @@ Inventory ini dibuat dari scan filesystem aktual. File yang masuk grup dependenc
 | `node/docs/coding-standard.md` | Other | Existing Docs | Skipped With Reason | Existing node documentation, not runtime source code. |
 | `node/docs/dependency-governance.md` | Other | Existing Docs | Skipped With Reason | Existing node documentation, not runtime source code. |
 | `node/docs/deviations.md` | Other | Existing Docs | Skipped With Reason | Existing node documentation, not runtime source code. |
-| `node/docs/goal.md` | Other | Existing Docs | Skipped With Reason | Existing node-specific engineering goal, separate from this TA documentation goal. |
+| Dokumen arahan teknis node | Other | Existing Docs | Skipped With Reason | Catatan engineering node, bukan runtime source code TA. |
 | `node/docs/index.html` | Other | Existing Docs | Skipped With Reason | Existing generated/static documentation page, not TA runtime source. |
 | `node/docs/internal/audit-prompt.md` | Other | Existing Docs | Skipped With Reason | Internal audit prompt documentation, not runtime source code. |
 | `node/docs/prinsip-efisiensi-memori-embedded.md` | Other | Existing Docs | Skipped With Reason | Existing node documentation, not runtime source code. |

@@ -26,6 +26,6 @@ Jika endpoint hardware atau upload firmware tidak dilindungi, pihak luar bisa me
 
 ## Status
 
-Belum terkonfirmasi dari kode route/middleware pada snapshot ini.
+Belum terlihat dari kode route/middleware pada snapshot ini.
 
 Lanjutkan ke [API Sensor](./api-sensor.md).

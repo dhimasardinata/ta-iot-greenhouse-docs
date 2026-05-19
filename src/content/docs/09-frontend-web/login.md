@@ -12,7 +12,7 @@ Tidak ada file Vue login yang ditemukan di folder `web/`. Namun Android WebView 
 
 ## Yang Perlu Dicari Nanti
 
-Jika file login tersedia, dokumentasi harus menjelaskan:
+Jika file login tersedia, halaman login menjelaskan:
 
 - form login,
 - API auth,

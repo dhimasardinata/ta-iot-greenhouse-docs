@@ -41,13 +41,48 @@ Baca:
 
 Setelah level ini, pembaca mulai bisa memahami payload sensor, data JSON, status perangkat, dan konfigurasi.
 
-## Level 3: Sistem TA
+## Level 3: C++ Firmware dan Memori
+
+Target level ini adalah memahami C++ modern yang dipakai firmware serta konsekuensi memorinya.
+
+Baca:
+
+1. [C++ Firmware Concepts](../01-programming-and-concepts/cpp-firmware.md)
+2. [Modern C++ 11-20 di Firmware](../01-programming-and-concepts/cpp-modern-11-20.md)
+3. [Template Metaprogramming dan Compile-Time JSON](../01-programming-and-concepts/cpp-template-metaprogramming.md)
+4. [Standard Library dan Memori Firmware](../01-programming-and-concepts/cpp-stdlib-memory.md)
+5. [Peta Memori Embedded](../01-programming-and-concepts/embedded-memory-map.md)
+6. [Stack Firmware Arduino dan PlatformIO](../01-programming-and-concepts/firmware-arduino-platformio.md)
+7. [Runtime Jaringan Firmware](../01-programming-and-concepts/firmware-network-runtime.md)
+8. [Storage, Cache, dan OTA Firmware](../01-programming-and-concepts/firmware-storage-cache-ota.md)
+9. [Sensor, Aktuator, dan Waktu Firmware](../01-programming-and-concepts/firmware-sensor-actuator-time.md)
+10. [Web UI Tertanam di Firmware](../01-programming-and-concepts/firmware-embedded-web-ui.md)
+11. [GPRS dan Fallback Gateway](../01-programming-and-concepts/gateway-gprs-fallback.md)
+
+Setelah level ini, pembaca mulai bisa membaca `auto`, `constexpr`, `consteval`, `std::array`, `std::span`, stack, heap, flash, `PROGMEM`, route web lokal, enkripsi browser, dan fallback modem tanpa melihatnya sebagai istilah terpisah.
+
+## Level 4: Web dan API
+
+Target level ini adalah memahami kode backend Laravel, frontend Vue, dan platform dokumentasi.
+
+Baca:
+
+1. [Laravel, Vue, and Android](../01-programming-and-concepts/laravel-vue-android.md)
+2. [Laravel API dan Database Query](../01-programming-and-concepts/web-laravel-api-database.md)
+3. [Vue Reactivity dan UI Greenhouse](../01-programming-and-concepts/web-vue-reactivity-ui.md)
+4. [Visualisasi Web Leaflet dan Canvas](../01-programming-and-concepts/web-visualization-leaflet.md)
+5. [JavaScript and TypeScript Tooling](../01-programming-and-concepts/javascript-typescript-tooling.md)
+6. [Next.js, Fumadocs, dan Search Docs](../01-programming-and-concepts/docs-platform-next-fumadocs.md)
+
+Setelah level ini, pembaca mulai memahami `Request`, `response()->json`, query builder, cache backend, Vue `ref`, `computed`, `watch`, Inertia props, Axios, Leaflet, canvas heatmap, TSX, route handler, dan search docs.
+
+## Level 5: Sistem TA
 
 Target level ini adalah memahami mengapa sistem dibuat dan komponen apa saja yang terlibat.
 
 Baca bagian konteks TA setelah halaman-halaman dasar selesai. Fokusnya bukan lagi istilah program, tetapi masalah greenhouse, tujuan sistem, dan manfaat penelitian.
 
-## Level 4: Arsitektur
+## Level 6: Arsitektur
 
 Target level ini adalah memahami alur besar:
 
@@ -60,13 +95,13 @@ Target level ini adalah memahami alur besar:
 
 Arsitektur harus dibaca sebelum file-by-file agar pembaca tahu posisi setiap file.
 
-## Level 5: File-by-File
+## Level 7: File-by-File
 
 Target level ini adalah memahami file nyata satu per satu. Jangan mulai dari level ini jika belum memahami gambaran besar, karena detail kode akan terasa terpisah-pisah.
 
 Gunakan [Coverage Report](../14-complete-file-walkthrough/coverage-report.md) untuk memilih file. Mulai dari file utama seperti `main.cpp`, controller utama, atau komponen UI utama, lalu lanjut ke file pendukung.
 
-## Level 6: Maintenance
+## Level 8: Maintenance
 
 Target level ini adalah mampu mengubah sistem dengan aman.
 
@@ -78,4 +113,4 @@ Sebelum mengubah kode:
 4. Pahami input, output, error, dan side effect.
 5. Jalankan pengujian yang relevan jika tersedia.
 
-Jika belum yakin efeknya, tulis dulu catatan `Belum terkonfirmasi dari kode` dan verifikasi lebih lanjut.
+Jika belum yakin efeknya, beri catatan bahwa detail belum terlihat dari kode, lalu cek bagian terkait lebih lanjut.

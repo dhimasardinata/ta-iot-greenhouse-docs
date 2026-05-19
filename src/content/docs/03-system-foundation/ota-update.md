@@ -33,7 +33,7 @@ OTA berisiko jika tidak aman:
 
 ## Hal yang Harus Didokumentasikan
 
-Untuk file OTA, dokumentasi harus menjelaskan:
+Untuk file OTA, dokumentasi menjelaskan:
 
 - URL update,
 - cara cek versi,

@@ -31,6 +31,6 @@ Fungsi getter seperti `getTempMin()`, `getTempMax()`, `getHumMin()`, dan `getHum
 
 ## Catatan Penting
 
-Threshold invalid tidak boleh langsung diterima. Dokumentasi file-by-file harus menjelaskan aturan validasi di `ThresholdValidation.h`.
+Threshold invalid ditolak sebelum mempengaruhi kontrol. Halaman file terkait menjelaskan aturan validasi di `ThresholdValidation.h`.
 
 Lanjutkan ke [Scheduling Control](./scheduling-control.md).

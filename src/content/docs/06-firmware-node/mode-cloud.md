@@ -37,7 +37,7 @@ Mode cloud bergantung pada:
 - ketersediaan backend,
 - heap cukup untuk HTTP/TLS.
 
-Jika cloud gagal, file API harus menjelaskan apakah data masuk cache, antrean darurat, atau fallback.
+Jika cloud gagal, file API menjelaskan apakah data masuk cache, antrean darurat, atau fallback.
 
 ## Hal yang Harus Diverifikasi di File-by-File
 

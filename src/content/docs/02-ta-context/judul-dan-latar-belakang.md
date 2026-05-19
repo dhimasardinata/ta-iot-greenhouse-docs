@@ -8,7 +8,7 @@ Judul sistem yang menjadi acuan dokumentasi ini adalah:
 
 **Integrasi Internet of Things Wireless Sensor Network Berbasis Web dan Android untuk Keamanan Serta Manajemen Data pada Greenhouse Anggrek PT Von Florist**
 
-Dokumentasi ini harus selalu memakai konteks Tugas Akhir IoT Greenhouse. Sistem ini bukan aplikasi bisnis umum dan bukan proyek komersial tanpa konteks penelitian.
+Dokumentasi ini memakai konteks Tugas Akhir IoT Greenhouse. Sistem ini bukan aplikasi bisnis umum, melainkan sistem penelitian dan implementasi untuk pemantauan serta pengendalian greenhouse anggrek.
 
 ## Latar Belakang Sederhana
 
@@ -42,8 +42,8 @@ Komponen utama dalam ruang lingkup dokumentasi:
 - keamanan HTTPS, token, WebSocket, dan AES-256-CBC,
 - caching dan OTA update.
 
-## Batas Kejujuran Dokumentasi
+## Batas Penjelasan
 
-Halaman ini menjelaskan konteks dari `goal.md`. Detail teknis per file tetap harus diverifikasi melalui kode. Jika nanti ada perbedaan antara gambaran umum dan kode aktual, dokumentasi file-by-file harus menulis kondisi sebenarnya.
+Halaman ini memberi gambaran konteks. Detail teknis tetap mengikuti source code yang tersedia. Jika ada perbedaan antara gambaran umum dan implementasi, halaman file terkait menjelaskan kondisi yang terlihat dari kode.
 
 Lanjutkan ke [Rumusan Masalah](./rumusan-masalah.md).

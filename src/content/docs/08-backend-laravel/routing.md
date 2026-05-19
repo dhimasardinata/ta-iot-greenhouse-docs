@@ -24,6 +24,6 @@ Beberapa endpoint disebut atau tersirat di controller:
 
 ## Belum Terkonfirmasi
 
-Nama route final, middleware, prefix, dan auth rule harus diverifikasi dari file route jika tersedia.
+Nama route final, middleware, prefix, dan auth rule dibaca dari file route jika tersedia.
 
 Lanjutkan ke [Controller](./controller.md).

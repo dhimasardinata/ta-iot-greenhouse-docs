@@ -18,7 +18,7 @@ API dapat dipakai untuk:
 - web mengirim perubahan kontrol,
 - perangkat mengambil informasi firmware OTA.
 
-Endpoint nyata harus diverifikasi dari controller atau route yang tersedia.
+Endpoint nyata dibaca dari controller atau route yang tersedia.
 
 ## Request dan Response
 

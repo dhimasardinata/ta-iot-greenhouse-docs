@@ -53,15 +53,12 @@ flowchart LR
 
 ## Mode Operasi
 
-`goal.md` menyebut mode cloud, edge, dan auto. Dokumentasi file-by-file nanti harus menjelaskan:
+Mode cloud, edge, dan auto menentukan jalur kerja perangkat:
 
-- bagaimana mode disimpan,
-- siapa yang mengubah mode,
-- apa efek mode terhadap pengiriman data,
-- kapan gateway dipakai,
-- kapan cloud dipakai,
-- bagaimana fallback dilakukan.
+- cloud mengutamakan server untuk penyimpanan dan dashboard,
+- edge mengutamakan gateway lokal saat keputusan perlu dekat dengan greenhouse,
+- auto memilih jalur yang paling sesuai dengan kondisi koneksi.
 
-Jika detail belum jelas dari kode, tulis `Belum terkonfirmasi dari kode`.
+Detail penyimpanan mode, pengubah mode, dan fallback dibahas pada file firmware yang mengatur pengiriman data dan gateway.
 
 Lanjutkan ke [Alur Node ke Cloud](./alur-node-ke-cloud.md).

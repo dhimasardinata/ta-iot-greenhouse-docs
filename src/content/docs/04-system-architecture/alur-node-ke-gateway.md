@@ -39,6 +39,6 @@ Dokumentasi file-by-file harus menjawab:
 - `gateway/src/MyNetworkManager.cpp`,
 - `gateway/src/WebSocketManager.cpp`.
 
-Daftar ini masih hipotesis awal dari nama dan inventory; detail harus diverifikasi saat membaca kode.
+Daftar ini adalah gambaran awal dari nama file dan inventory. Detailnya dibaca saat masuk ke kode.
 
 Lanjutkan ke [Alur Gateway ke Aktuator](./alur-gateway-ke-aktuator.md).

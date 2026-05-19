@@ -12,7 +12,7 @@ Node sensor bertugas membaca data lingkungan greenhouse, memvalidasi pembacaan, 
 
 ## Jenis File di Dalam Source
 
-Berdasarkan coverage awal, file node yang wajib didokumentasikan mencakup:
+Berdasarkan coverage awal, file node yang perlu dijelaskan mencakup:
 
 - firmware C++ di `node/src/`, `node/include/`, dan `node/lib/NodeCore/`,
 - asset runtime portal di `node/data/`,

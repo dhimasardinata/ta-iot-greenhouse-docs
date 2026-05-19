@@ -38,6 +38,6 @@ Frontend berkomunikasi dengan backend melalui Inertia props dan request Axios.
 
 ## Catatan
 
-Jika response API berubah, frontend bisa gagal karena property yang dibaca tidak ada. Dokumentasi file-by-file harus mencatat kontrak data tiap komponen.
+Jika response API berubah, frontend bisa gagal karena property yang dibaca tidak ada. Halaman file terkait mencatat kontrak data tiap komponen.
 
 Lanjutkan ke [Debugging Frontend](./debugging-frontend.md).

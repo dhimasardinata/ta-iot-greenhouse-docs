@@ -48,6 +48,6 @@ Jika Wi-Fi atau cloud gagal, data sensor tidak langsung hilang. Cache menjaga da
 
 ## Catatan File-by-File
 
-Halaman detail `CacheManager.cpp` nanti harus menjelaskan format file, cara head/tail bekerja jika ada, dan kapan `flush()` dipanggil.
+Halaman detail `CacheManager.cpp` menjelaskan format file, cara head/tail bekerja jika ada, dan kapan `flush()` dipanggil.
 
 Lanjutkan ke [Pengiriman Data](./pengiriman-data.md).

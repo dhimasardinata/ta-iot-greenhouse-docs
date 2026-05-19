@@ -13,4 +13,4 @@ Mulai dari laporan coverage terlebih dahulu:
 - [Full File Inventory](../99-generated/full-file-inventory.md)
 - [Full Folder Inventory](../99-generated/full-folder-inventory.md)
 
-Status awal semua source/config/script/asset runtime masih `Pending`. Halaman file-by-file harus dibuat bertahap sesuai template wajib di `goal.md`.
+Bagian ini mengumpulkan penjelasan file-by-file. Mulai dari file utama, lalu lanjut ke modul pendukung supaya pembaca melihat alur sistem sebelum masuk ke detail kecil.

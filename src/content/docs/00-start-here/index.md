@@ -70,7 +70,7 @@ Dokumentasi masih bertahap. Tahap inventory sudah dibuat di:
 - [Full File Inventory](../99-generated/full-file-inventory.md)
 - [Full Folder Inventory](../99-generated/full-folder-inventory.md)
 
-Halaman file-by-file belum berarti selesai hanya karena masuk inventory. Status `Pending` berarti file tersebut sudah ditemukan dan wajib didokumentasikan, tetapi halaman detailnya belum ditulis.
+Inventory membantu pembaca melihat file apa saja yang ada. Halaman detail menjelaskan peran file tersebut dalam sistem, sehingga pembaca tidak hanya melihat daftar nama file.
 
 ## Hal Penting untuk Pembaca Baru
 

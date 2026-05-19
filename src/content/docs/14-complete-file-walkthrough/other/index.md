@@ -12,7 +12,7 @@ Kategori Other berisi file existing documentation, placeholder README, dan snaps
 
 ## Contoh yang Di-skip
 
-- `goal.md` sebagai instruksi dokumentasi,
+- dokumen arahan internal,
 - `node/README.md`,
 - `node/SECURITY.md`,
 - `node/docs/*`,
@@ -20,8 +20,8 @@ Kategori Other berisi file existing documentation, placeholder README, dan snaps
 - `gateway/test/README`,
 - `node/tools/context/*`.
 
-## Aturan
+## Catatan
 
-Jika nanti ada file Other yang ternyata source penting, statusnya harus diubah dari skip menjadi pending dan dibuatkan halaman file-by-file.
+Jika nanti ada file Other yang ternyata berpengaruh ke runtime sistem, file tersebut perlu dijelaskan seperti file source lain.
 
 Lihat [Coverage Report](../coverage-report.md) untuk status terbaru.

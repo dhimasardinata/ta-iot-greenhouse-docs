@@ -38,7 +38,7 @@ Web dashboard kemungkinan bertugas:
 - scheduling control,
 - OTA management.
 
-Yang sudah terlihat di inventory awal adalah potongan Vue dan controller, bukan struktur web lengkap. Detail tiap halaman harus diverifikasi dari file `web/`.
+Yang sudah terlihat di inventory awal adalah potongan Vue dan controller, bukan struktur web lengkap. Detail tiap halaman dibaca dari file `web/`.
 
 ## Android WebView
 

@@ -84,6 +84,6 @@ Saat debugging, jangan mengubah banyak bagian sekaligus. Jika banyak perubahan d
 
 ## Kesimpulan
 
-Debugging adalah mencari bukti. Pada sistem ini, bukti bisa berasal dari log firmware, API, database, browser, Android, atau perangkat fisik. Dokumentasi file-by-file nanti harus mencatat cara debugging untuk setiap file penting.
+Debugging adalah mencari bukti. Pada sistem ini, bukti bisa berasal dari log firmware, API, database, browser, Android, atau perangkat fisik. Halaman file terkait mencatat cara debugging untuk file penting.
 
 Kembali ke [Peta Belajar](../00-start-here/peta-belajar.md).

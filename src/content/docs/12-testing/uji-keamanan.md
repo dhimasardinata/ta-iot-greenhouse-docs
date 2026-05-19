@@ -43,6 +43,6 @@ Uji keamanan memastikan data greenhouse tidak mudah dipalsukan, dibaca sembarang
 
 ## Batasan
 
-AES-256-CBC melindungi isi pesan, tetapi tetap perlu autentikasi, validasi, dan replay protection. Detail replay protection harus dikonfirmasi file-by-file karena tidak boleh diasumsikan hanya dari nama fungsi enkripsi.
+AES-256-CBC melindungi isi pesan, tetapi tetap perlu autentikasi, validasi, dan replay protection. Detail replay protection dibaca file-by-file karena nama fungsi enkripsi saja belum cukup menjelaskan perlindungan lengkap.
 
 Lanjutkan ke [Blackbox Testing](./blackbox-testing.md).

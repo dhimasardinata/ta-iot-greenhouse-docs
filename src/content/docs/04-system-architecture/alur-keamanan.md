@@ -32,7 +32,7 @@ flowchart TD
 
 ## Prinsip Dokumentasi Keamanan
 
-Dokumentasi boleh menjelaskan fungsi file keamanan, tetapi tidak boleh menyalin rahasia seperti private key, token produksi, atau credential.
+Dokumentasi menjelaskan fungsi file keamanan tanpa menyalin rahasia seperti private key, token produksi, atau credential.
 
 Jika ada file yang tampak seperti private key, dokumentasikan keberadaan dan risikonya, bukan isi rahasianya.
 
@@ -46,6 +46,6 @@ Jika ada file yang tampak seperti private key, dokumentasikan keberadaan dan ris
 - `node/tools/certs/`,
 - `web/*Controller.php`.
 
-Detail keamanan harus diverifikasi dari kode dan konfigurasi nyata.
+Detail keamanan dibaca dari kode dan konfigurasi nyata.
 
 Kembali ke [Overview Arsitektur Sistem](./overview.md).

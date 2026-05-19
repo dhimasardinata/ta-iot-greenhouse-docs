@@ -44,6 +44,6 @@ File yang terlihat:
 
 ## Prinsip Aman
 
-Jangan menyimpan token produksi sembarangan di dokumentasi publik. Jika harus menjelaskan token, jelaskan fungsi dan lokasinya, bukan nilai rahasianya.
+Token produksi tidak disalin ke dokumentasi publik. Jika token perlu dibahas, dokumentasi cukup menjelaskan fungsi dan lokasinya, bukan nilai rahasianya.
 
 Lanjutkan ke [Monitoring Log](./monitoring-log.md).

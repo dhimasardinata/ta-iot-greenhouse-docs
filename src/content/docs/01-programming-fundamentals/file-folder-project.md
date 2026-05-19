@@ -21,7 +21,7 @@ Contoh file dalam sistem ini:
 | `android/MainActivity.kt.txt` | Potongan activity Android. |
 | `node/platformio.ini` | Konfigurasi build firmware node. |
 
-Catatan: fungsi detail setiap file harus diverifikasi di halaman file-by-file.
+Catatan: fungsi detail setiap file dibaca di halaman file-by-file.
 
 ## Folder
 

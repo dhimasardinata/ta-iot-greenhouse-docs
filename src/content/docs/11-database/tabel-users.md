@@ -6,7 +6,7 @@ title: "Tabel `users`"
 
 ## Status
 
-`goal.md` menyebut tabel `users`, tetapi file snapshot yang dibaca belum memperlihatkan query langsung ke tabel `users`.
+Tabel `users` dibahas sebagai bagian umum dari backend Laravel, tetapi snapshot kode yang dibaca belum memperlihatkan query langsung ke tabel ini.
 
 ## Fungsi Umum
 

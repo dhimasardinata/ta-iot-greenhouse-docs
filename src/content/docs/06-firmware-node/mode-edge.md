@@ -44,6 +44,6 @@ flowchart TD
 
 ## Catatan
 
-Detail endpoint lokal dan format payload edge harus diverifikasi di file API client dan gateway.
+Detail endpoint lokal dan format payload edge dibaca di file API client dan gateway.
 
 Lanjutkan ke [Mode Auto](./mode-auto.md).

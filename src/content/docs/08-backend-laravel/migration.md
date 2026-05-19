@@ -25,6 +25,6 @@ Controller menyebut tabel atau model:
 
 ## Batas Kejujuran
 
-Kolom, tipe data, index, foreign key, dan constraint tidak boleh diklaim final tanpa migration atau schema.
+Kolom, tipe data, index, foreign key, dan constraint dianggap final jika migration atau schema tersedia sebagai bukti.
 
 Lanjutkan ke [Middleware](./middleware.md).

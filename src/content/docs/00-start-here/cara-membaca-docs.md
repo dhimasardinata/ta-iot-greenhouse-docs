@@ -44,20 +44,20 @@ Untuk developer yang sudah paham dasar:
 
 Bagian teori menjelaskan istilah dan konsep. Contohnya program, API, database, firmware, atau WebSocket.
 
-Bagian kode menjelaskan file nyata di repository. Bagian ini harus selalu berbasis kode aktual. Jika sesuatu belum jelas dari kode, dokumentasi harus menulis `Belum terkonfirmasi dari kode`.
+Bagian kode menjelaskan file nyata di repository. Jika ada detail yang belum terlihat dari source, dokumentasi akan menandainya sebagai hal yang belum terlihat di snapshot kode saat ini.
 
 ## Cara Membaca File-by-File
 
-Setiap halaman file-by-file akan mengikuti pola yang sama:
+Halaman file-by-file umumnya menjawab pertanyaan yang sama:
 
 1. Ringkasan sederhana.
 2. Posisi file dalam sistem.
 3. Alasan file dibutuhkan.
 4. Kapan file dipakai.
 5. Alur kerja file.
-6. Fungsi, variabel, konstanta, input, output, dependency, error handling, keamanan, performa, dan debugging.
+6. Bagian penting seperti fungsi, variabel, input, output, dependency, error handling, keamanan, performa, dan debugging.
 
-Pola ini sengaja dibuat berulang supaya pembaca tidak harus menebak struktur halaman.
+Pola ini membantu pembaca menemukan informasi penting tanpa harus menebak struktur halaman.
 
 ## Cara Menilai Status Dokumentasi
 

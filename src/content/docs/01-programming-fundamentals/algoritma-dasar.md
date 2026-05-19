@@ -67,7 +67,7 @@ Logika threshold harus jelas karena langsung berhubungan dengan kondisi greenhou
 
 Scheduling decision adalah keputusan berdasarkan jadwal. Misalnya aktuator menyala pada jam tertentu.
 
-Jika scheduling dan threshold sama-sama ada, dokumentasi harus menjelaskan prioritasnya: apakah jadwal mengalahkan threshold, atau sebaliknya. Jika belum jelas dari kode, tulis `Belum terkonfirmasi dari kode`.
+Jika scheduling dan threshold sama-sama ada, penjelasan perlu menunjukkan prioritasnya: apakah jadwal mengalahkan threshold, atau sebaliknya. Jika belum terlihat dari kode, bagian itu ditandai sebagai belum terlihat dari kode yang tersedia.
 
 ## Kesimpulan
 

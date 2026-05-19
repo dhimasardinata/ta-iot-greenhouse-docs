@@ -20,7 +20,7 @@ Dalam sistem greenhouse, nilai yang sering disimpan antara lain:
 | `token` | Kode autentikasi. |
 | `recorded_at` | Waktu data dicatat. |
 
-Nama variabel bisa berbeda di tiap file. Halaman file-by-file harus menjelaskan variabel nyata yang ada di file tersebut.
+Nama variabel bisa berbeda di tiap file. Halaman file terkait menjelaskan variabel nyata yang ada di file tersebut.
 
 ## Tipe Data
 
@@ -56,9 +56,9 @@ Pada firmware, konstanta penting karena bisa menentukan pin sensor, pin relay, i
 
 ## Variabel di Firmware
 
-Firmware berjalan di perangkat dengan memori terbatas. Artinya, variabel tidak boleh dibuat sembarangan dalam ukuran besar. Data besar bisa memenuhi RAM dan menyebabkan perangkat tidak stabil.
+Firmware berjalan di perangkat dengan memori terbatas. Karena itu, variabel berukuran besar perlu diperhatikan karena bisa memenuhi RAM dan menyebabkan perangkat tidak stabil.
 
-Karena itu dokumentasi file firmware harus mencatat:
+Karena itu dokumentasi file firmware mencatat:
 
 - variabel penting,
 - konstanta penting,

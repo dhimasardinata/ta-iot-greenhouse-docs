@@ -8,7 +8,7 @@ WebSocket adalah jalur komunikasi dua arah yang dapat tetap terbuka antara clien
 
 ## Kegunaan dalam Sistem Ini
 
-`goal.md` menyebut WebSocket lokal dan terminal gateway/node. Artinya WebSocket kemungkinan dipakai untuk:
+Dalam sistem ini, WebSocket berkaitan dengan jalur lokal dan terminal perangkat. WebSocket dapat dipakai untuk:
 
 - terminal lokal,
 - log realtime,
@@ -16,7 +16,7 @@ WebSocket adalah jalur komunikasi dua arah yang dapat tetap terbuka antara clien
 - status perangkat,
 - komunikasi cepat antara browser dan firmware.
 
-Detail pastinya harus diverifikasi di file firmware yang mengelola WebSocket.
+Detail pastinya dijelaskan pada file firmware yang mengelola WebSocket.
 
 ## Contoh Alur Terminal
 

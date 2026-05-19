@@ -50,6 +50,6 @@ Karena aktuator punya efek fisik, error di bagian ini harus dianggap penting. Ri
 - `gateway/include/ThresholdValidation.h`,
 - `gateway/include/ScheduleValidation.h`.
 
-Detail logika prioritas threshold dan jadwal harus diverifikasi dari source.
+Detail logika prioritas threshold dan jadwal dibahas dari source yang mengatur kontrol.
 
 Lanjutkan ke [Alur Web dan Android](./alur-web-dan-android.md).

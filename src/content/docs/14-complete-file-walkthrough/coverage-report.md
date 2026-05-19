@@ -6,7 +6,7 @@ title: "Coverage Report"
 
 Terakhir diperiksa: 2026-05-19
 
-Laporan ini adalah hasil Tahap 1 dari `goal.md`: scan repository, klasifikasi file, dan penentuan status awal dokumentasi. Tidak ada source code aplikasi yang diubah pada tahap ini.
+Laporan ini merangkum hasil scan repository, klasifikasi file, dan status awal dokumentasi. Tidak ada source code aplikasi yang diubah pada tahap ini.
 
 Artefak terkait:
 
@@ -19,14 +19,14 @@ Artefak terkait:
 - File source, konfigurasi penting, script, test, dan asset runtime diberi status `Pending` sampai halaman dokumentasi file-by-file dibuat. File yang sudah punya halaman awal diberi status `Drafted` sampai direview ulang.
 - Dependency hasil install, cache, build output, log, metadata Git, dan snapshot prompt tidak dibuatkan halaman file-by-file karena bukan source utama sistem TA.
 - File existing documentation dicatat supaya tidak hilang dari inventory, tetapi diberi `Skipped With Reason` karena bukan runtime source code.
-- Path halaman docs untuk file `Pending` belum dibuat; kolom halaman docs memakai `-` sesuai format awal goal.md.
+- Path halaman docs untuk file `Pending` belum dibuat; kolom halaman docs memakai `-` sampai halaman detail tersedia.
 
 ## Total File Ditemukan
 
 - Total file fisik ditemukan: 5244
 - Total file masuk inventory terperinci: 341
 - Total file dikelompokkan sebagai dependency/cache/build/log/metadata: 4903
-- Total file wajib didokumentasikan: 317
+- Total file yang perlu dijelaskan: 317
 - Total file terdokumentasi awal: 317
 - Total file boleh di-skip dengan alasan: 4927
 - Komponen terbesar untuk dokumentasi: Firmware Node (222 file)
@@ -111,7 +111,7 @@ Artefak terkait:
 | `gateway/src/WiFiCredentialStore.cpp`                         | Firmware Gateway | Drafted             | `docs-site/src/content/docs/14-complete-file-walkthrough/gateway/src/WiFiCredentialStore.cpp.md`                         | -                                                                                  |
 | `gateway/src/main.cpp`                                        | Firmware Gateway | Drafted             | `docs-site/src/content/docs/14-complete-file-walkthrough/gateway/src/main.cpp.md`                                        | -                                                                                  |
 | `gateway/test/README`                                         | Other            | Skipped With Reason | `-`                                                                                                                      | PlatformIO placeholder README for tests, not runtime source code.                  |
-| `goal.md`                                                     | Other            | Skipped With Reason | `-`                                                                                                                      | Root instruction file for the documentation goal, not runtime source code.         |
+| Dokumen arahan internal                                       | Other            | Skipped With Reason | `-`                                                                                                                      | Catatan kerja dokumentasi, bukan runtime source code.                              |
 | `node/.clang-format`                                          | Config           | Drafted             | `docs-site/src/content/docs/14-complete-file-walkthrough/config/node/.clang-format.md`                                   | -                                                                                  |
 | `node/.codacy.yml`                                            | Config           | Drafted             | `docs-site/src/content/docs/14-complete-file-walkthrough/config/node/.codacy.yml.md`                                     | -                                                                                  |
 | `node/.devcontainer/devcontainer.json`                        | Config           | Drafted             | `docs-site/src/content/docs/14-complete-file-walkthrough/config/node/.devcontainer/devcontainer.json.md`                 | -                                                                                  |
@@ -150,7 +150,7 @@ Artefak terkait:
 | `node/docs/coding-standard.md`                                | Other            | Skipped With Reason | `-`                                                                                                                      | Existing node documentation, not runtime source code.                              |
 | `node/docs/dependency-governance.md`                          | Other            | Skipped With Reason | `-`                                                                                                                      | Existing node documentation, not runtime source code.                              |
 | `node/docs/deviations.md`                                     | Other            | Skipped With Reason | `-`                                                                                                                      | Existing node documentation, not runtime source code.                              |
-| `node/docs/goal.md`                                           | Other            | Skipped With Reason | `-`                                                                                                                      | Existing node-specific engineering goal, separate from this TA documentation goal. |
+| Dokumen arahan teknis node                                    | Other            | Skipped With Reason | `-`                                                                                                                      | Catatan engineering node, bukan runtime source code TA.                            |
 | `node/docs/index.html`                                        | Other            | Skipped With Reason | `-`                                                                                                                      | Existing generated/static documentation page, not TA runtime source.               |
 | `node/docs/internal/audit-prompt.md`                          | Other            | Skipped With Reason | `-`                                                                                                                      | Internal audit prompt documentation, not runtime source code.                      |
 | `node/docs/prinsip-efisiensi-memori-embedded.md`              | Other            | Skipped With Reason | `-`                                                                                                                      | Existing node documentation, not runtime source code.                              |

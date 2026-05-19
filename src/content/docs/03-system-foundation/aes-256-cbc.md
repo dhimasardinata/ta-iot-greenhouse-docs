@@ -12,7 +12,7 @@ Enkripsi adalah proses mengubah data asli menjadi bentuk yang sulit dibaca tanpa
 
 ## Di Mana Dipakai
 
-`goal.md` menyebut AES-256-CBC sebagai bagian keamanan sistem. Detail file yang memakai AES harus diverifikasi di source code, terutama di firmware, backend, atau asset web yang berkaitan dengan crypto.
+AES-256-CBC masuk bagian keamanan sistem. Detail pemakaiannya dijelaskan dari source code, terutama firmware, backend, atau asset web yang berkaitan dengan crypto.
 
 ## Hal yang Perlu Hati-hati
 
@@ -26,6 +26,6 @@ Enkripsi harus hati-hati. Beberapa hal penting:
 
 ## Batas Kejujuran
 
-Halaman ini hanya menjelaskan konsep. Cara sistem benar-benar memakai AES-256-CBC harus dibuktikan dari file seperti crypto utility, asset JavaScript, backend, atau konfigurasi terkait.
+Halaman ini menjelaskan konsep. Cara sistem memakai AES-256-CBC dibahas lebih detail pada file seperti crypto utility, asset JavaScript, backend, atau konfigurasi terkait.
 
 Lanjutkan ke [Database](./database.md).

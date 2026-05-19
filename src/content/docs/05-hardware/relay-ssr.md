@@ -30,7 +30,7 @@ CH1, CH2, dan CH3 terhubung ke exhaust, dehumidifier, dan blower sesuai komentar
 
 Relay punya efek fisik. Kesalahan wiring atau logika kontrol dapat membuat aktuator menyala/mati di waktu yang salah.
 
-Dokumentasi file-by-file harus menjelaskan:
+Halaman file terkait menjelaskan:
 
 - active high atau active low jika terlihat dari kode,
 - mode manual, schedule, threshold, dan hold,

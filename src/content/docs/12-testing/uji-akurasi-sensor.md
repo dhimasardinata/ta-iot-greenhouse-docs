@@ -50,6 +50,6 @@ Sensor tidak otomatis benar hanya karena ada angka. Angka sensor harus dibanding
 
 ## Status Bukti
 
-Belum terlihat file hasil pengukuran sensor fisik di snapshot ini. Halaman file-by-file nanti harus memastikan apakah data uji lapangan disimpan di folder lain atau masih perlu dibuat.
+Belum terlihat file hasil pengukuran sensor fisik di snapshot ini. Halaman pengujian dapat menautkan data uji lapangan jika file tersebut nanti tersedia.
 
 Lanjutkan ke [Uji Node ke Cloud](./uji-node-ke-cloud.md).

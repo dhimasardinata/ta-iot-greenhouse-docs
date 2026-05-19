@@ -27,13 +27,13 @@ Edge berguna untuk:
 
 ## Mode Cloud, Edge, dan Auto
 
-`goal.md` menyebut mode cloud, edge, dan auto. Penjelasan awal:
+Dalam sistem ini ada tiga cara kerja utama:
 
 - cloud: perangkat mengandalkan server cloud,
 - edge: perangkat mengandalkan jalur lokal/gateway,
 - auto: perangkat memilih atau berpindah sesuai kondisi.
 
-Detail implementasi mode harus diverifikasi di firmware node dan gateway.
+Detail implementasi mode dibahas di dokumentasi firmware node dan gateway.
 
 ## Diagram Konsep
 

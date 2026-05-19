@@ -187,4 +187,4 @@ Folder `node/test/` membantu menjelaskan perilaku tanpa harus selalu menjalankan
 
 ## Batas Halaman Ini
 
-Halaman ini belum menggantikan kewajiban file-by-file. Setiap file yang masih `Pending` di coverage report tetap harus punya halaman sendiri yang menjelaskan tujuan file, pemanggil, input, output, risiko, error, dan hubungan ke sistem TA.
+Halaman ini adalah overview folder. Penjelasan file-by-file tetap dibutuhkan untuk menerangkan tujuan file, pemanggil, input, output, risiko, error, dan hubungan ke sistem TA.

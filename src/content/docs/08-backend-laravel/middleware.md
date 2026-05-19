@@ -25,6 +25,6 @@ Namun detail middleware sistem ini belum terkonfirmasi dari kode.
 
 ## Catatan untuk File-by-File
 
-Jika route/middleware nanti ditemukan, dokumentasi harus menjelaskan endpoint mana yang dilindungi dan siapa yang boleh mengaksesnya.
+Jika route/middleware nanti ditemukan, halaman middleware menjelaskan endpoint mana yang dilindungi dan siapa yang boleh mengaksesnya.
 
 Lanjutkan ke [Authentication](./authentication.md).

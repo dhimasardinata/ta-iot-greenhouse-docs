@@ -35,7 +35,7 @@ Karena itu, prototype membantu menemukan masalah yang tidak terlihat hanya dari 
 
 ## Hubungan dengan Dokumentasi
 
-Dokumentasi harus mencatat hasil prototyping jika datanya tersedia. Contohnya:
+Dokumentasi mencatat hasil prototyping jika datanya tersedia. Contohnya:
 
 - perubahan threshold,
 - perbaikan caching,

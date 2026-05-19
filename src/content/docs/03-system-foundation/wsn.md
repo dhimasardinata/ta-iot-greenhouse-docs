@@ -35,6 +35,6 @@ Contoh alur:
 
 ## Hubungan dengan TA
 
-WSN berkaitan langsung dengan pengujian QoS seperti RSSI, delay, throughput, dan data loss. Dokumentasi pengujian nanti harus menjelaskan cara data ini diukur jika bukti pengujian tersedia.
+WSN berkaitan langsung dengan pengujian QoS seperti RSSI, delay, throughput, dan data loss. Halaman pengujian menjelaskan cara data ini diukur jika bukti pengujian tersedia.
 
 Lanjutkan ke [Topologi Star](./topologi-star.md).

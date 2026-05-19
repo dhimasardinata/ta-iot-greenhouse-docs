@@ -8,7 +8,7 @@ Bagian ini akan menjadi pintu masuk dokumentasi file-by-file gateway.
 
 ## Status Saat Ini
 
-File gateway yang relevan masih `Pending` di [Coverage Report](../../14-complete-file-walkthrough/coverage-report.md). Halaman ini hanya overview.
+File gateway yang relevan tercatat di [Coverage Report](../../14-complete-file-walkthrough/coverage-report.md). Halaman ini menjadi pintu masuk untuk memahami file kontrol, jaringan, log, dan tampilan lokal.
 
 ## Kelompok File Gateway
 
@@ -37,4 +37,4 @@ File gateway yang relevan masih `Pending` di [Coverage Report](../../14-complete
 9. `gateway/src/WebSocketManager.cpp`
 10. `gateway/src/LCDDisplay.cpp`
 
-Gunakan template wajib dari `goal.md` untuk setiap file.
+Untuk setiap file, baca dari peran file, kapan dipakai, alur data, bagian penting, risiko error, dan cara debug.

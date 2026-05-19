@@ -8,7 +8,7 @@ Rumusan masalah adalah pertanyaan utama yang ingin dijawab oleh sistem Tugas Akh
 
 ## Rumusan Masalah Utama
 
-Berdasarkan ruang lingkup `goal.md`, rumusan masalah dapat ditulis sebagai berikut:
+Rumusan masalah sistem dapat ditulis sebagai berikut:
 
 1. Bagaimana merancang sistem IoT-WSN untuk memantau kondisi greenhouse anggrek?
 2. Bagaimana node sensor membaca dan mengirim data lingkungan?
@@ -20,7 +20,7 @@ Berdasarkan ruang lingkup `goal.md`, rumusan masalah dapat ditulis sebagai berik
 
 ## Kenapa Rumusan Ini Penting
 
-Rumusan masalah membantu dokumentasi tetap fokus. Setiap file yang didokumentasikan harus dikaitkan kembali ke salah satu kebutuhan sistem.
+Rumusan masalah membantu pembaca memahami alasan tiap komponen dibuat. File sensor, API, cache, OTA, dan WebView punya peran berbeda tetapi tetap kembali ke kebutuhan sistem greenhouse.
 
 Contoh:
 
@@ -32,10 +32,10 @@ Contoh:
 
 ## Yang Belum Boleh Dikarang
 
-Dokumentasi tidak boleh mengarang hasil penelitian seperti nilai akurasi sensor, delay, throughput, atau data loss jika belum ada file atau data pengujian yang membuktikannya.
+Dokumentasi hanya memakai hasil penelitian yang memiliki bukti, misalnya nilai akurasi sensor, delay, throughput, atau data loss dari file atau data pengujian.
 
-Jika hasil belum tersedia, tulis:
+Jika hasil belum tersedia, dokumentasi cukup menyatakan:
 
-> Belum terkonfirmasi dari kode atau data pengujian.
+> Belum terlihat dari kode atau data pengujian yang tersedia.
 
 Lanjutkan ke [Tujuan](./tujuan.md).
