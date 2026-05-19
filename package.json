@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.11",
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/mdx": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
