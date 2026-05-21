@@ -30,7 +30,7 @@ Dalam sistem kontrol otomatis greenhouse, kita dapat menggunakan dua jenis relay
 
 Modul relay komersial yang digunakan di pasaran umumnya menggunakan konfigurasi logika **Active-Low**. Hal ini sangat penting dipahami saat menulis firmware:
 
-```
+```text
 GPIO ESP32 = HIGH (3.3V)  ──> LED Optokopler OFF ──> Relay Terbuka (OFF) / Alat Mati
 GPIO ESP32 = LOW (0V)     ──> LED Optokopler ON  ──> Relay Tertutup (ON)  / Alat Menyala
 ```
@@ -52,7 +52,7 @@ Tegangan kejut ini dapat melompati celah udara kontak relay mekanik (menyebabkan
 
 Untuk mengamankan sakelar, kita wajib memasang **RC Snubber Circuit** secara paralel dengan terminal kontak relay:
 
-```
+```text
        Terminal Sakelar Relay / SSR
        ┌───────────[ ]───────────┐
        │                         │

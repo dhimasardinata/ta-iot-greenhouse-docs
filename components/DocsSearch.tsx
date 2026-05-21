@@ -2,12 +2,18 @@
 
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 type SearchResult = {
   content: string;
   title: string;
   url: string;
+};
+
+type DocsSearchProps = {
+  autoFocus?: boolean;
+  id?: string;
+  onNavigate?: () => void;
 };
 
 function excerpt(content: string): string {
@@ -20,10 +26,16 @@ function excerpt(content: string): string {
     .slice(0, 140);
 }
 
-export function DocsSearch() {
+export function DocsSearch({
+  autoFocus = false,
+  id,
+  onNavigate,
+}: DocsSearchProps) {
+  const generatedId = useId();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const inputId = id ?? `docs-search-${generatedId.replace(/:/g, "")}`;
   const trimmed = useMemo(() => query.trim(), [query]);
 
   useEffect(() => {
@@ -69,7 +81,7 @@ export function DocsSearch() {
     <div className="space-y-2">
       <label
         className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
-        htmlFor="docs-search"
+        htmlFor={inputId}
       >
         Cari Materi
       </label>
@@ -79,8 +91,9 @@ export function DocsSearch() {
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
         />
         <input
+          autoFocus={autoFocus}
           className="h-10 w-full rounded border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-950 outline-none ring-0 placeholder:text-zinc-400 focus:border-emerald-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-emerald-400"
-          id="docs-search"
+          id={inputId}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Cari modul, file, atau konsep"
           type="search"
@@ -105,7 +118,10 @@ export function DocsSearch() {
                   <Link
                     className="block px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                     href={result.url}
-                    onClick={() => setQuery("")}
+                    onClick={() => {
+                      setQuery("");
+                      onNavigate?.();
+                    }}
                   >
                     <span className="block font-medium text-zinc-950 dark:text-zinc-50">
                       {result.title}

@@ -62,7 +62,7 @@ Ketika perangkat menyala:
 * Pada booting berikutnya, nilai *Crash Count* akan bertambah lagi.
 * Jika *Crash Count* melewati batas toleransi (**> 5 kali crash berturut-turut**), `BootGuard` akan memaksa perangkat untuk masuk ke **Safe Mode** saat booting berikutnya.
 
-```
+```text
 Start Booting
   └── Baca RTC RAM
        ├── CRC32 Rusak? ──> Reset Crash Count = 0

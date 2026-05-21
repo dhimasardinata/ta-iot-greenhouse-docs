@@ -26,21 +26,21 @@ Layar LCD pada gateway diprogram untuk berganti tampilan secara bergantian (*cyc
 
 ### Halaman 1: Kondisi Sensor Lingkungan
 Menampilkan nilai suhu, kelembapan, dan intensitas cahaya rata-rata greenhouse saat ini:
-```
+```text
 TEMP : 28.4 C
 HUMI : 72.1 %  LUX:12400
 ```
 
 ### Halaman 2: Status Jaringan dan API Cloud
 Menampilkan status koneksi Wi-Fi atau GSM, alamat IP lokal, dan status HTTP push ke cloud server:
-```
+```text
 IP: 192.168.1.105
 CLOUD: CONNECTED (OK)
 ```
 
 ### Halaman 3: Status Aktuator dan File Log
 Menampilkan status aktif sakelar relay dan ketersediaan penyimpanan SD Card lokal:
-```
+```text
 RELAY: EXH:ON BLW:OFF
 LOG  : SD:OK CACHE:0
 ```

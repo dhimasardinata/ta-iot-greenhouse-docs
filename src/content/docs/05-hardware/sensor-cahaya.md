@@ -30,7 +30,7 @@ BH1750 adalah sensor intensitas cahaya digital (ambient light sensor) yang memil
 
 Untuk mendapatkan pembacaan intensitas cahaya matahari yang akurat:
 
-```
+```text
 BENAR (Menghadap Langit, Bebas Halangan):
       [ Langit / Arah Datang Sinar ]
                  │ │ │

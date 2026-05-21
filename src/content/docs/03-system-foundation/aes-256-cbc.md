@@ -74,11 +74,11 @@ Penerima data cukup memisahkan string menggunakan pemisah `:`, melakukan dekode 
 
 ## Proteksi Replay Attack (Timestamp Prefix)
 
-Salah satu celah keamanan terbesar pada perintah jarak jauh adalah **Replay Attack**. Penyerang dapat merekam paket data perintah terenkripsi (misal perintah menyalakan pompa), lalu mengirimkannya kembali ke node di waktu lain untuk menyalakan pompa tanpa izin. Meskipun penyerang tidak tahu isi pesannya, paket lama itu masih bisa terlihat seperti payload terenkripsi yang valid jika tidak ada pemeriksaan waktu.
+Salah satu celah keamanan terbesar pada perintah jarak jauh adalah **Replay Attack**. Penyerang dapat merekam paket data perintah terenkripsi, misalnya perintah menyalakan relay dehumidifier 2 kW, lalu mengirimkannya kembali ke node di waktu lain untuk menyalakan aktuator besar itu tanpa izin. Meskipun penyerang tidak tahu isi pesannya, paket lama itu masih bisa terlihat seperti payload terenkripsi yang valid jika tidak ada pemeriksaan waktu.
 
 Untuk mengatasinya, sistem kita menyisipkan **Unix Timestamp 4-byte** (dalam format Big Endian/Network Byte Order) tepat di awal plaintext sebelum enkripsi dilakukan.
 
-```
+```text
 Plaintext Sebelum Enkripsi = [Timestamp (4-Byte)] + [Pesan Asli]
 ```
 

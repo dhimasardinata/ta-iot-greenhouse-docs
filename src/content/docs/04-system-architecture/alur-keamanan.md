@@ -4,7 +4,7 @@ title: "Alur Keamanan"
 
 # Alur Keamanan Berlapis
 
-Keamanan adalah salah satu aspek paling krusial dalam sistem IoT nirkabel. Tanpa sistem perlindungan yang memadai, pihak luar yang tidak bertanggung jawab dapat menyadap data greenhouse, memalsukan pembacaan sensor, hingga mengirimkan perintah palsu untuk merusak tanaman (misal menyalakan pompa air terus-menerus hingga banjir).
+Keamanan adalah salah satu aspek paling krusial dalam sistem IoT nirkabel. Tanpa sistem perlindungan yang memadai, pihak luar yang tidak bertanggung jawab dapat menyadap data greenhouse, memalsukan pembacaan sensor, hingga mengirimkan perintah palsu untuk menyalakan dehumidifier 2 kW di luar jadwal sampai kelembapan turun berlebihan dan listrik terbuang.
 
 Sistem Tugas Akhir ini menerapkan **Keamanan Berlapis (Multi-layered Security)** dari tingkat jaringan hingga aplikasi.
 
@@ -14,7 +14,7 @@ Sistem Tugas Akhir ini menerapkan **Keamanan Berlapis (Multi-layered Security)**
 
 Berikut adalah arsitektur keamanan berlapis yang kita gunakan:
 
-```
+```text
 [ Data / Perintah ]
         │
         ▼
@@ -48,7 +48,7 @@ Kode node juga memiliki enkripsi aplikasi **AES-256-CBC** di `CryptoUtils`. Namu
 * **Batas Fakta Repo:** Endpoint cloud `ApiController::saveSensorData` yang ada di repo ini menerima JSON biasa dan tidak melakukan dekripsi AES. AES dipakai pada jalur firmware/lokal tertentu, misalnya payload gateway lokal yang diberi prefix `ENC:` dan komunikasi terminal terenkripsi.
 
 ### 3. Proteksi Serangan Putar Ulang (Replay Attack Protection)
-Serangan *Replay Attack* terjadi ketika paket terenkripsi yang valid direkam lalu dikirim ulang di waktu lain.
+Serangan *Replay Attack* terjadi ketika paket terenkripsi yang valid direkam lalu dikirim ulang di waktu lain. Contohnya, paket lama untuk menyalakan relay dehumidifier 2 kW bisa diputar ulang agar aktuator menyala lagi tanpa perintah baru dari sistem.
 
 Untuk menangkal ini, kita menggunakan verifikasi **Timestamp Skew**:
 

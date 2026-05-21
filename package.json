@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "ensure:frontmatter": "tsx scripts/ensure-frontmatter.ts",
+    "lint:snippets": "tsx scripts/validate-docs.ts --snippets-only",
     "validate:docs": "tsx scripts/validate-docs.ts"
   },
   "dependencies": {

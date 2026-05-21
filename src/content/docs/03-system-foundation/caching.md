@@ -45,7 +45,7 @@ Untuk mengatasinya, `CacheManager` memperlakukan file cache seperti sebuah lingk
 4. **Wrap-Around saat Membaca:**
    Jika pointer `tail` mencapai batas akhir file, fungsi `readWithWrap()` akan secara otomatis melompat kembali ke awal data di flash untuk melanjutkan pembacaan.
 
-```
+```text
 Posisi Awal file: [ HEADER ] [ DATA TERLAMA (tail) ] ... [ DATA TERBARU (head) ] ... [ BATAS CACHE ]
 Data Masuk Baru : [ HEADER ] [ DATA TERLAMA (tail) ] ... [ ... ] [ DATA TERBARU ] ──> (head melompat ke awal jika penuh)
 ```

@@ -29,7 +29,7 @@ Sensor keluarga SHT merupakan sensor digital yang memiliki tingkat akurasi tingg
 
 Untuk mendapatkan data yang mewakili kondisi lingkungan anggrek yang sebenarnya (*representative sampling*):
 
-```
+```text
 BENAR:
 ┌──────────────────────────────────────┐
 │  [Atap Greenhouse / Paranet]         │

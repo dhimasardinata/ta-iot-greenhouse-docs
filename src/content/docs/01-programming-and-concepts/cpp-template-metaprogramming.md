@@ -15,7 +15,7 @@ Payload JSON sering punya bagian tetap dan bagian runtime.
 Bagian tetap:
 
 ```json
-{"gh_id":...,"node_id":...,"temperature":...}
+{"gh_id":"GH-1","node_id":"node-01","temperature":28.4}
 ```
 
 Bagian runtime:
