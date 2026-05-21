@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { codeToHtml } from 'shiki';
 
 import { MermaidDiagram } from '@/components/MermaidDiagram';
 import { normalizeDocHref } from '@/lib/docs';
@@ -8,10 +9,75 @@ type MarkdownViewProps = {
   slug: string[];
 };
 
+function normalizeSnippetLanguage(language: string): string {
+  const lower = language.toLowerCase();
+  const aliases = new Map([
+    ['h', 'cpp'],
+    ['kt', 'kotlin'],
+    ['plain', 'text'],
+    ['plaintext', 'text'],
+    ['py', 'python'],
+    ['sh', 'bash'],
+    ['txt', 'text'],
+    ['yml', 'yaml'],
+  ]);
+
+  return aliases.get(lower) ?? lower;
+}
+
+async function renderCodeFigure({
+  code,
+  key,
+  language,
+}: {
+  code: string;
+  key: number;
+  language: string;
+}): Promise<ReactNode> {
+  const displayLanguage = language || 'text';
+  const shikiLanguage = normalizeSnippetLanguage(displayLanguage);
+  let highlighted = '';
+
+  try {
+    highlighted = await codeToHtml(code, {
+      lang: shikiLanguage,
+      themes: {
+        dark: 'github-dark',
+        light: 'github-light',
+      },
+    });
+  } catch {
+    highlighted = await codeToHtml(code, {
+      lang: 'text',
+      themes: {
+        dark: 'github-dark',
+        light: 'github-light',
+      },
+    });
+  }
+
+  return (
+    <figure
+      className="my-6 overflow-hidden rounded border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#24292e]"
+      key={key}
+    >
+      {displayLanguage ? (
+        <figcaption className="border-b border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+          {displayLanguage}
+        </figcaption>
+      ) : null}
+      <div
+        className="docs-code"
+        dangerouslySetInnerHTML={{ __html: highlighted }}
+      />
+    </figure>
+  );
+}
+
 function isSpecialLine(line: string): boolean {
   return (
     /^#{1,6}\s+/.test(line) ||
-    /^```/.test(line) ||
+    /^\s*```/.test(line) ||
     /^\s*---+\s*$/.test(line) ||
     /^\s*[-*]\s+/.test(line) ||
     /^\s*\d+\.\s+/.test(line) ||
@@ -116,7 +182,7 @@ function renderTable(lines: string[], currentSlug: string[], key: number): React
   );
 }
 
-export function MarkdownView({ content, slug }: MarkdownViewProps) {
+export async function MarkdownView({ content, slug }: MarkdownViewProps) {
   const lines = content.replace(/\r\n/g, '\n').split('\n');
   const nodes: ReactNode[] = [];
   let index = 0;
@@ -131,7 +197,7 @@ export function MarkdownView({ content, slug }: MarkdownViewProps) {
     }
 
     if (trimmed.startsWith('```')) {
-      const language = trimmed.slice(3).trim();
+      const language = trimmed.slice(3).trim().split(/\s+/, 1)[0] ?? '';
       const code: string[] = [];
       index += 1;
 
@@ -147,16 +213,11 @@ export function MarkdownView({ content, slug }: MarkdownViewProps) {
       }
 
       nodes.push(
-        <figure className="my-6 overflow-hidden rounded border border-zinc-200 bg-zinc-950 dark:border-zinc-800" key={nodes.length}>
-          {language ? (
-            <figcaption className="border-b border-zinc-800 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
-              {language}
-            </figcaption>
-          ) : null}
-          <pre className="overflow-x-auto p-4 text-sm leading-6 text-zinc-100">
-            <code>{code.join('\n')}</code>
-          </pre>
-        </figure>,
+        await renderCodeFigure({
+          code: code.join('\n'),
+          key: nodes.length,
+          language,
+        }),
       );
       continue;
     }
