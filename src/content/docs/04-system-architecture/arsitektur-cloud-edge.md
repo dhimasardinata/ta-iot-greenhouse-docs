@@ -2,63 +2,54 @@
 title: "Arsitektur Cloud-Edge"
 ---
 
-# Arsitektur Cloud-Edge
+# Arsitektur Komputasi Cloud-Edge
 
-Arsitektur cloud-edge membagi pekerjaan antara server cloud dan perangkat lokal.
+Dalam sistem IoT modern, memindahkan semua beban komputasi dan keputusan ke server internet (Cloud) adalah langkah yang kurang bijak. Koneksi internet bisa putus sewaktu-waktu. Jika kontrol tanaman bergantung 100% pada internet, tanaman anggrek bisa layu atau mati jika internet mati berhari-hari.
 
-## Peran Cloud
+Tugas Akhir ini mengadopsi **Arsitektur Hybrid Cloud-Edge**, membagi beban kerja secara cerdas antara server cloud jarak jauh dan gateway/node lokal di lapangan.
 
-Cloud berperan sebagai pusat data dan layanan jarak jauh:
+---
 
-- menerima data sensor,
-- menyimpan data ke database,
-- menyediakan API,
-- melayani dashboard web,
-- menyediakan data untuk Android,
-- menyediakan firmware OTA jika fitur itu aktif.
+## Pembagian Beban Kerja (Cloud vs Edge)
 
-## Peran Edge
+Berikut adalah matriks pembagian tanggung jawab sistem:
 
-Edge berada dekat dengan greenhouse, biasanya melalui gateway. Peran edge:
+| Fitur / Tugas | Komputasi Cloud (Server Laravel) | Komputasi Edge (Gateway ESP32 & Node) |
+| :--- | :--- | :--- |
+| **Penyimpanan Data** | Historis permanen (MySQL), cadangan bertahun-tahun. | Antrean lokal jangka pendek di RTC RAM dan LittleFS. |
+| **Pengambilan Keputusan** | Statistik jangka panjang, prediksi AI kabut, penjadwalan mingguan. | Respon darurat cepat (nyalakan kipas/pompa instan jika melewati threshold). |
+| **Keamanan** | Otentikasi user/JWT pada aplikasi web dan HTTPS di server. | BearSSL untuk HTTPS, AES-256-CBC pada jalur lokal tertentu, CRC32 untuk data internal, dan validasi OTA dengan checksum jika server menyediakannya. |
+| **Sumber & Konsumsi Daya** | Tidak terbatas (Listrik server konstan). | Listrik AC melalui Adaptor/PSU 5V 3A (Node dioptimalkan untuk meminimalkan panas). |
+| **Ketergantungan Internet** | Mutlak (Tanpa internet, web & API tidak bisa diakses). | Mandiri (Tetap bisa mengontrol aktuator secara lokal tanpa internet). |
 
-- membaca atau menerima data dari node lokal,
-- melakukan keputusan lokal,
-- mengendalikan aktuator,
-- tetap memberi fungsi tertentu saat cloud tidak stabil,
-- menyediakan terminal atau dashboard lokal jika tersedia.
+---
 
-## Diagram
+## Bagaimana Keduanya Sinkron?
+
+Ketika sistem berada dalam **Mode Auto** (Mode Otomatis), sinkronisasi data cloud dan edge berjalan dengan protokol berkala:
 
 ```mermaid
-flowchart LR
-    subgraph Edge[Area Lokal Greenhouse]
-        N1[Node Sensor]
-        G[Gateway]
-        ACT[Aktuator]
-        N1 --> G
-        G --> ACT
-    end
+sequenceDiagram
+    participant Edge as Gateway ESP32 (Edge)
+    participant Cloud as Laravel Server (Cloud)
 
-    subgraph Cloud[Server Cloud]
-        API[Backend Laravel]
-        DB[(MySQL)]
-        WEB[Web Dashboard]
-        API --> DB
-        WEB --> API
-    end
+    Note over Edge, Cloud: Kondisi Internet Stabil
+    Edge->>Cloud: 1. Kirim Snapshot Sensor Lokal (POST)
+    Cloud-->>Edge: 2. Balas dengan Konfigurasi & Jadwal Aktuator Terbaru
+    Note over Edge: Gateway update threshold internal
 
-    G --> API
-    N1 --> API
+    Note over Edge, Cloud: Internet Mati Mendadak
+    Edge->>Edge: 3. Lakukan pengambilan keputusan lokal (Edge Mode)
+    Edge->>Edge: 4. Data sensor disimpan di Cache lokal
+
+    Note over Edge, Cloud: Internet Pulih Kembali
+    Edge->>Cloud: 5. Kirim seluruh tumpukan data Cache (Syncing)
+    Cloud->>Cloud: 6. Masukkan data cache historis ke MySQL
 ```
 
-## Mode Operasi
+1.  **Pembaruan Threshold Kontrol:**
+    Pengguna mengubah batas suhu aman di website (Cloud). Perubahan ini disimpan di database server. Pada siklus kirim data berikutnya, Gateway (Edge) meminta konfigurasi terbaru, lalu menyimpan threshold baru tersebut ke dalam flash internalnya.
+2.  **Transmisi Historis Tertunda:**
+    Saat internet terputus, data sensor diantrekan di memori lokal. Begitu internet terhubung kembali, Gateway secara otomatis mengunggah seluruh antrean data secara bertahap tanpa membebani server, memastikan grafik sejarah di cloud tetap utuh tanpa ada lubang waktu kosong (*data gap*).
 
-Mode cloud, edge, dan auto menentukan jalur kerja perangkat:
-
-- cloud mengutamakan server untuk penyimpanan dan dashboard,
-- edge mengutamakan gateway lokal saat keputusan perlu dekat dengan greenhouse,
-- auto memilih jalur yang paling sesuai dengan kondisi koneksi.
-
-Detail penyimpanan mode, pengubah mode, dan fallback dibahas pada file firmware yang mengatur pengiriman data dan gateway.
-
-Lanjutkan ke [Alur Node ke Cloud](./alur-node-ke-cloud.md).
+Lanjutkan ke **[Alur Node ke Cloud](./alur-node-ke-cloud.md)** untuk melihat bagaimana data sensor menembus internet menuju server Laravel!
