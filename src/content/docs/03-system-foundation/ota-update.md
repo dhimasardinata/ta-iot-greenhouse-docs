@@ -34,8 +34,8 @@ sequenceDiagram
             Perangkat->>Perangkat: 4. Set Reboot Reason = OTA_UPDATE
             Perangkat->>Perangkat: 5. Restart Perangkat
             Note over Perangkat: Booting menggunakan firmware baru
-        else MD5 Tidak Cocok
-            Perangkat->>Perangkat: Batalkan, hapus partisi OTA cadangan
+        else Update tidak valid
+            Perangkat->>Perangkat: Batalkan update dan tetap pakai firmware lama
         end
     end
 ```

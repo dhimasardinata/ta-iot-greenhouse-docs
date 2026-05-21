@@ -47,7 +47,7 @@ Gateway mengendalikan perangkat listrik (AC 220V atau DC 12V) menggunakan modul 
 * **Tujuan:** Mengurangi uap air berlebih di dalam greenhouse.
 
 ### 3. Sinkronisasi Status ke Cloud
-Setiap kali status sakelar fisik berubah (misal dari mati ke nyala), Gateway mengirimkan HTTP POST berisi status aktuator terkini ke endpoint `/api/update-device-status` pada server Laravel. Hal ini memperbarui tabel `device_statuses` di database cloud, sehingga ikon kipas di web dashboard pengguna akan ikut berputar secara real-time.
+Setiap kali status sakelar fisik berubah (misal dari mati ke nyala), Gateway mengirimkan HTTP POST berisi status aktuator terkini ke URL `DEVICE_STATUS_POST_URL`. Pada konfigurasi gateway saat ini, URL tersebut mengarah ke `/api/device_status` dan diproses oleh `ApiController@postDeviceStatus`. Hal ini memperbarui tabel `device_statuses` di database cloud, sehingga ikon kipas di web dashboard pengguna ikut sinkron dengan kondisi relay fisik.
 
 ---
 

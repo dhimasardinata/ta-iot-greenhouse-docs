@@ -64,7 +64,7 @@ ESP8266 membagi memori flash programnya menjadi dua area virtual utama: **Partis
 Firmware memakai `ESP8266HTTPUpdate` untuk mengunduh dan memasang file. Jika response update gagal, URL bukan HTTPS, heap tidak cukup, atau file tidak valid, proses dibatalkan. Kode juga dapat membaca field `md5` jika server menyediakannya; tetapi `OtaController.php` di repo ini saat ini hanya mengembalikan `version`, `file_url`, `status`, dan `node_id`.
 
 ### 4. Aktivasi dan Penukaran Partisi (Partition Swap)
-Jika MD5 valid:
+Jika update valid:
 * Node menulis alasan reboot `BootGuard::RebootReason::OTA_UPDATE` ke RTC RAM.
 * Node memanggil perintah `ESP.restart()`.
 * Saat booting, chip Bootloader internal ESP8266 mendeteksi bendera update yang valid pada Partisi OTA, lalu menukar peran partisi: Partisi Cadangan kini menjadi Partisi Aktif, dan sebaliknya.

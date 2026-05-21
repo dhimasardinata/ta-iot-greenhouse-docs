@@ -90,7 +90,7 @@ Berikut adalah pemetaan endpoint yang aktif digunakan oleh perangkat keras dan d
   ```
 
 ### 4. Sinkronisasi Status Aktuator
-* **Endpoint:** `POST /api/post-device-status`
+* **Endpoint:** `POST /api/device_status` pada konfigurasi gateway saat ini.
 * **Controller:** `ApiController@postDeviceStatus`
 * **Pengguna:** Gateway ESP32.
 * **Fungsi:** Mengabarkan kondisi riil relay kipas/pompa ke server agar status di dashboard sinkron.

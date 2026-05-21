@@ -26,12 +26,15 @@ Modul ini berfungsi sebagai "kotak hitam" (flight recorder) lokal untuk menyimpa
 
 ## Mekanisme Logging dan Struktur File
 
-Data sensor dicatat dalam berkas teks berekstensi `.csv` (Comma Separated Values) yang disimpan ke dalam folder `/logs/` dengan nama berkas berdasarkan tanggal saat itu (diperoleh dari jam RTC), misalnya: `/logs/2026-05-21.csv`.
+Data sensor dicatat dalam berkas teks berekstensi `.csv` (Comma Separated Values) di root kartu SD. Kode gateway saat ini memakai dua file utama:
+
+* `/log.csv` untuk riwayat data sensor, status relay, status kabut, threshold, jadwal, dan sumber keputusan kontrol.
+* `/qos.csv` untuk catatan kualitas pengiriman data node, seperti waktu terima, waktu kirim, ukuran payload, dan RSSI.
 
 Format satu baris data di dalam CSV adalah sebagai berikut:
 ```csv
-timestamp,node_id,temperature,humidity,light_lux,relay_exhaust,relay_dehumidifier,relay_blower
-1716274200,1,28.40,72.10,12400,1,0,0
+DateTime,Temperature,Humidity,Light,NetworkType,Signal,Relay1,Relay2,Relay3,Relay4,FogStatus,Tmin,Tmax,Hmin,Hmax,GatewayMode,ThresholdSource,ScheduleSource,R1ScheduleActive,R2ScheduleActive,R3ScheduleActive,R1ScheduleId,R2ScheduleId,R3ScheduleId,R1Decision,R2Decision,R3Decision
+2026-05-21 09:24:00,28.40,72.1,12400.0,WiFi,-65,ON,OFF,OFF,OFF,0,24.0,30.0,60.0,85.0,AUTO,CLOUD,CLOUD,0,0,0,-1,-1,-1,THRESHOLD,HOLD,HOLD
 ```
 
 Dengan struktur ini, pemilik greenhouse dapat melepas kartu SD sewaktu-waktu dan membacanya di komputer menggunakan aplikasi spreadsheet seperti Microsoft Excel untuk analisis pertumbuhan tanaman.
@@ -42,7 +45,8 @@ Dengan struktur ini, pemilik greenhouse dapat melepas kartu SD sewaktu-waktu dan
 
 Kartu SD sangat rentan mengalami kerusakan sistem berkas (*file corruption*) jika listrik padam mendadak tepat saat mikrokontroler sedang menulis data ke kartu. Untuk mengatasi kelemahan fisik ini, firmware Gateway (`SDCardLogger.cpp`) menerapkan prosedur menulis aman:
 
-1.  **Siklus Open-Write-Close Instan:** Pustaka tidak membiarkan file terbuka terus-menerus. Setiap kali data masuk, file dibuka (`file = SD.open(...)`), data ditulis dengan cepat, lalu file langsung ditutup kembali (`file.close()`). Ini memastikan penulisan buffer ke memori fisik selesai dalam milidetik.
-2.  **Retry Timer Tanpa Blokir:** Jika kartu SD rusak atau tidak sengaja tercabut, sistem tidak akan mogok (*freeze*). Firmware melacak waktu kegagalan terakhir dan hanya akan mencoba mendeteksi ulang kartu SD setiap **5 menit sekali** (`SD_RETRY_INTERVAL_MS`), membiarkan *control loop* utama tetap berjalan tanpa hambatan.
+1.  **Handle File Dijaga Selama Runtime:** Saat SD berhasil diinisialisasi, gateway membuka `/log.csv` dan `/qos.csv` dalam mode append. Data baru ditulis sebagai baris CSV tanpa membuat file baru setiap tanggal.
+2.  **Flush Berkala:** Untuk mengurangi beban tulis kartu SD, `/log.csv` di-flush setiap **12 kali penulisan**. File `/qos.csv` di-flush setiap kali catatan QoS ditulis karena frekuensinya lebih rendah dan dipakai untuk evaluasi jaringan.
+3.  **Retry Timer Tanpa Blokir:** Jika kartu SD rusak atau tidak sengaja tercabut, sistem tidak akan mogok (**freeze**). Firmware melacak waktu kegagalan terakhir dan hanya akan mencoba mendeteksi ulang kartu SD setiap **5 menit sekali** (`SD_RETRY_INTERVAL_MS`), membiarkan control loop utama tetap berjalan tanpa hambatan.
 
 Kembali ke **[Overview Arsitektur](../04-system-architecture/overview.md)** atau lanjutkan membaca bagian kode di **[Firmware Node](../06-firmware-node/overview.md)**!

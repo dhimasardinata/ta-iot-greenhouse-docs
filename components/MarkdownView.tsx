@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 import { normalizeDocHref } from '@/lib/docs';
 
 type MarkdownViewProps = {
@@ -11,6 +12,7 @@ function isSpecialLine(line: string): boolean {
   return (
     /^#{1,6}\s+/.test(line) ||
     /^```/.test(line) ||
+    /^\s*---+\s*$/.test(line) ||
     /^\s*[-*]\s+/.test(line) ||
     /^\s*\d+\.\s+/.test(line) ||
     /^\s*>/.test(line) ||
@@ -25,7 +27,9 @@ function Inline({
   currentSlug: string[];
   text: string;
 }): ReactNode {
-  const parts = text.split(/(<br\s*\/>|`[^`]+`|\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
+  const parts = text.split(
+    /(<br\s*\/>|`[^`]+`|\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\([^)]+\))/g,
+  );
 
   return (
     <>
@@ -44,6 +48,9 @@ function Inline({
         }
         if (part.startsWith('**') && part.endsWith('**')) {
           return <strong key={index}>{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith('*') && part.endsWith('*')) {
+          return <strong key={index}>{part.slice(1, -1)}</strong>;
         }
 
         const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
@@ -134,6 +141,11 @@ export function MarkdownView({ content, slug }: MarkdownViewProps) {
       }
 
       index += 1;
+      if (language.split(/\s+/)[0]?.toLowerCase() === 'mermaid') {
+        nodes.push(<MermaidDiagram chart={code.join('\n')} key={nodes.length} />);
+        continue;
+      }
+
       nodes.push(
         <figure className="my-6 overflow-hidden rounded border border-zinc-200 bg-zinc-950 dark:border-zinc-800" key={nodes.length}>
           {language ? (
@@ -146,6 +158,12 @@ export function MarkdownView({ content, slug }: MarkdownViewProps) {
           </pre>
         </figure>,
       );
+      continue;
+    }
+
+    if (/^\s*---+\s*$/.test(line)) {
+      nodes.push(<hr className="my-8 border-zinc-200 dark:border-zinc-800" key={nodes.length} />);
+      index += 1;
       continue;
     }
 
