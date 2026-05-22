@@ -36,7 +36,7 @@ Di dalam file `ApiClient.Security.cpp`, terdapat dua opsi validasi keamanan sert
 ```mermaid
 flowchart TD
     Node[Node ESP8266] -->|Koneksi HTTPS ke Port 443| Server[(Laravel Cloud Server)]
-    subgraph Jabat Tangan TLS (BearSSL)
+    subgraph TLS["Jabat Tangan TLS - BearSSL"]
         Node -->|1. Minta Sertifikat SSL| Server
         Server -->|2. Kirim Sertifikat SSL| Node
         Node -->|3. Cocokkan dengan Trust Anchors| Node

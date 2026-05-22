@@ -19,9 +19,14 @@ class SensorManager : public ISensorManager<SensorManager> {
 };
 ```
 
+Cara membacanya sederhana: `ISensorManager<SensorManager>` adalah kontrak umum, tetapi kontrak itu sudah tahu tipe konkret yang akan menjalankan pekerjaan sebenarnya, yaitu `SensorManager`. Karena tipenya diketahui saat build, pemanggilan seperti `readSensors()` dapat diarahkan ke `readSensorsImpl()` tanpa tabel fungsi virtual.
+
 ### Keuntungan Teknis CRTP:
-*   **Tanpa Overhead Virtual Table (vtable)**: Menghemat alokasi memori dinamis sebesar 4 byte per instance karena tidak memerlukan pointer vtable (*vptr*).
-*   **Compile-Time Inlining**: Compiler C++ (PlatformIO / GCC) dapat langsung menyisipkan kode fungsi (*inline*) selama fase kompilasi, menghilangkan overhead panggilan fungsi tidak langsung (*indirect jump*) dan mempercepat eksekusi loop utama.
+*   **Tidak perlu `vptr` per objek**: Objek tidak membawa pointer virtual table seperti pada polymorphism runtime. Ini membantu firmware kecil karena RAM ESP8266 terbatas.
+*   **Compile-Time Inlining**: Compiler C++ (PlatformIO / GCC) dapat menyisipkan kode fungsi (*inline*) selama kompilasi, sehingga panggilan fungsi di loop utama lebih ringan.
+*   **Kontrak tetap terlihat jelas**: Kode lain tetap membaca interface `ISensorManager`, tetapi implementasi akhirnya tetap berada di `SensorManager`.
+
+Pola yang sama juga muncul pada `CacheManager` dan `DiagnosticsTerminal` melalui interface CRTP lain. Untuk gambaran pola C++ lain yang dipakai firmware, lihat [Pola C++ di Firmware](../01-programming-and-concepts/cpp-patterns-firmware.md).
 
 ---
 

@@ -23,7 +23,7 @@ Mari kita bedah secara mendalam bagaimana algoritma ini bekerja, struktur paddin
 
 ```mermaid
 flowchart TD
-    subgraph Enkripsi CBC (Blok Pertama)
+    subgraph CBC1["Enkripsi CBC - Blok Pertama"]
         P1[Plaintext Blok 1]
         IV[Initialization Vector - 16 Byte]
         XOR1((XOR))

@@ -49,17 +49,18 @@ Baca:
 
 1. [C++ Firmware Concepts](../01-programming-and-concepts/cpp-firmware.md)
 2. [Modern C++ 11-20 di Firmware](../01-programming-and-concepts/cpp-modern-11-20.md)
-3. [Template Metaprogramming dan Compile-Time JSON](../01-programming-and-concepts/cpp-template-metaprogramming.md)
-4. [Standard Library dan Memori Firmware](../01-programming-and-concepts/cpp-stdlib-memory.md)
-5. [Peta Memori Embedded](../01-programming-and-concepts/embedded-memory-map.md)
-6. [Stack Firmware Arduino dan PlatformIO](../01-programming-and-concepts/firmware-arduino-platformio.md)
-7. [Runtime Jaringan Firmware](../01-programming-and-concepts/firmware-network-runtime.md)
-8. [Storage, Cache, dan OTA Firmware](../01-programming-and-concepts/firmware-storage-cache-ota.md)
-9. [Sensor, Aktuator, dan Waktu Firmware](../01-programming-and-concepts/firmware-sensor-actuator-time.md)
-10. [Web UI Tertanam di Firmware](../01-programming-and-concepts/firmware-embedded-web-ui.md)
-11. [GPRS dan Fallback Gateway](../01-programming-and-concepts/gateway-gprs-fallback.md)
+3. [Pola C++ di Firmware](../01-programming-and-concepts/cpp-patterns-firmware.md)
+4. [Template Metaprogramming dan Compile-Time JSON](../01-programming-and-concepts/cpp-template-metaprogramming.md)
+5. [Standard Library dan Memori Firmware](../01-programming-and-concepts/cpp-stdlib-memory.md)
+6. [Peta Memori Embedded](../01-programming-and-concepts/embedded-memory-map.md)
+7. [Stack Firmware Arduino dan PlatformIO](../01-programming-and-concepts/firmware-arduino-platformio.md)
+8. [Runtime Jaringan Firmware](../01-programming-and-concepts/firmware-network-runtime.md)
+9. [Storage, Cache, dan OTA Firmware](../01-programming-and-concepts/firmware-storage-cache-ota.md)
+10. [Sensor, Aktuator, dan Waktu Firmware](../01-programming-and-concepts/firmware-sensor-actuator-time.md)
+11. [Web UI Tertanam di Firmware](../01-programming-and-concepts/firmware-embedded-web-ui.md)
+12. [GPRS dan Fallback Gateway](../01-programming-and-concepts/gateway-gprs-fallback.md)
 
-Setelah level ini, pembaca mulai bisa membaca `auto`, `constexpr`, `consteval`, `std::array`, `std::span`, stack, heap, flash, `PROGMEM`, route web lokal, enkripsi browser, dan fallback modem tanpa melihatnya sebagai istilah terpisah.
+Setelah level ini, pembaca mulai bisa membaca `auto`, `constexpr`, `consteval`, `std::array`, `std::span`, CRTP, observer, facade, state machine, stack, heap, flash, `PROGMEM`, route web lokal, enkripsi browser, dan fallback modem tanpa melihatnya sebagai istilah terpisah.
 
 ## Level 4: Web dan API
 

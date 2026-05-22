@@ -31,7 +31,7 @@ flowchart TD
     NormalNode -- Tidak --> QueueSensor[Enqueue NodeMutation Aksi Sensor Suhu/Kelembapan/Cahaya]
     QueueCam & QueueSensor --> Success[Kirim HTTP 200 OK]
 
-    GHFilter -- Tidak (Cross-Talk) --> LogCross[Cetak [CROSS-TALK] ke Serial / WebSerial]
+    GHFilter -- Tidak (Cross-Talk) --> LogCross["Cetak CROSS-TALK ke Serial / WebSerial"]
     LogCross --> BypassControl[Bypass Kontrol Aktuator]
     BypassControl --> Success
 

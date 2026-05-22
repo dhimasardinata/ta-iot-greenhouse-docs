@@ -14,17 +14,18 @@ Untuk membaca firmware node dan gateway, baca halaman ini berurutan:
 
 1. [C++ Firmware Concepts](./cpp-firmware.md)
 2. [Modern C++ 11-20 di Firmware](./cpp-modern-11-20.md)
-3. [Template Metaprogramming dan Compile-Time JSON](./cpp-template-metaprogramming.md)
-4. [Standard Library dan Memori Firmware](./cpp-stdlib-memory.md)
-5. [Peta Memori Embedded](./embedded-memory-map.md)
-6. [Stack Firmware Arduino dan PlatformIO](./firmware-arduino-platformio.md)
-7. [Runtime Jaringan Firmware](./firmware-network-runtime.md)
-8. [Storage, Cache, dan OTA Firmware](./firmware-storage-cache-ota.md)
-9. [Sensor, Aktuator, dan Waktu Firmware](./firmware-sensor-actuator-time.md)
-10. [Web UI Tertanam di Firmware](./firmware-embedded-web-ui.md)
-11. [GPRS dan Fallback Gateway](./gateway-gprs-fallback.md)
+3. [Pola C++ di Firmware](./cpp-patterns-firmware.md)
+4. [Template Metaprogramming dan Compile-Time JSON](./cpp-template-metaprogramming.md)
+5. [Standard Library dan Memori Firmware](./cpp-stdlib-memory.md)
+6. [Peta Memori Embedded](./embedded-memory-map.md)
+7. [Stack Firmware Arduino dan PlatformIO](./firmware-arduino-platformio.md)
+8. [Runtime Jaringan Firmware](./firmware-network-runtime.md)
+9. [Storage, Cache, dan OTA Firmware](./firmware-storage-cache-ota.md)
+10. [Sensor, Aktuator, dan Waktu Firmware](./firmware-sensor-actuator-time.md)
+11. [Web UI Tertanam di Firmware](./firmware-embedded-web-ui.md)
+12. [GPRS dan Fallback Gateway](./gateway-gprs-fallback.md)
 
-Urutan ini membantu pembaca memahami kenapa kode memakai `auto`, `constexpr`, `consteval`, `std::array`, `std::span`, `std::unique_ptr`, `PROGMEM`, guard heap, WebSocket lokal, AES-CBC browser, dan fallback GPRS.
+Urutan ini membantu pembaca memahami kenapa kode memakai `auto`, `constexpr`, `consteval`, `std::array`, `std::span`, `std::unique_ptr`, CRTP, observer, facade, state machine, `PROGMEM`, guard heap, WebSocket lokal, AES-CBC browser, dan fallback GPRS.
 
 ## Fokus Kode Web
 
