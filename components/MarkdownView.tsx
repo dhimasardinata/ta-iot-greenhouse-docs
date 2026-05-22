@@ -113,10 +113,18 @@ function Inline({
           );
         }
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={index}>{part.slice(2, -2)}</strong>;
+          return (
+            <strong key={index}>
+              <Inline currentSlug={currentSlug} text={part.slice(2, -2)} />
+            </strong>
+          );
         }
         if (part.startsWith('*') && part.endsWith('*')) {
-          return <strong key={index}>{part.slice(1, -1)}</strong>;
+          return (
+            <strong key={index}>
+              <Inline currentSlug={currentSlug} text={part.slice(1, -1)} />
+            </strong>
+          );
         }
 
         const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);

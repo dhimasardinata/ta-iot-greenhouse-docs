@@ -60,9 +60,9 @@ Ketika internet mati dalam Mode Auto, data sensor disimpan di memori flash lokal
 * Jika suatu blok cache terdeteksi corrupt, blok tersebut dilewati agar data rusak tidak terkirim ke Laravel Cloud dan merusak statistik grafik.
 
 ### 3. RtcManager (Validasi Memori RTC SRAM)
-ESP8266 memiliki area memori kecil bernama RTC RAM (SRAM) yang tetap bertahan melewati restart biasa, tetapi hilang jika listrik mati total. Firmware node memakai area ini sebagai antrean kecil untuk data sensor offline, bukan sebagai siklus *deep sleep*.
-* Setiap slot data sensor di RTC RAM punya magic marker dan CRC32.
-* Saat node boot atau akan membaca antrean, `RtcManager` memvalidasi header dan record. Jika ada slot rusak, sistem mencoba melakukan recovery terbatas atau membuang slot corrupt agar antrean tetap aman dibaca.
+ESP8266 memiliki area memori kecil bernama RTC RAM (SRAM) yang tetap bertahan melewati restart biasa (soft reset), tetapi terhapus jika listrik mati total (power cycle). Karena node sensor berjalan menggunakan catu daya konstan 5V 3A dengan siklus kerja aktif terus-menerus (continuous active loop), RTC RAM ini dimanfaatkan oleh firmware node sebagai memori penyimpanan antrean cepat (fast-access cache buffer) untuk data sensor sebelum ditulis ke LittleFS. Penggunaan CRC32 di sini membuat firmware dapat mendeteksi record RTC yang berubah atau tidak utuh setelah reset, crash mendadak, atau ketidakstabilan daya, lalu membuang record corrupt tersebut.
+* Setiap slot data sensor di RTC RAM memiliki magic marker dan nilai checksum CRC32 untuk menjamin integritas datanya.
+* Saat node boot atau membaca antrean, `RtcManager` memvalidasi header dan record. Jika ada slot rusak, sistem membuang slot corrupt agar antrean tetap aman dibaca.
 
 ### 4. BootGuard (Pencegahan Bootloop)
 `BootGuard` bertindak sebagai sistem perlindungan darurat. Ia menyimpan jumlah crash dan alasan restart di RTC RAM.

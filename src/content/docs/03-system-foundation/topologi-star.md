@@ -31,7 +31,7 @@ flowchart TD
  Pemilihan topologi ini didasarkan pada kebutuhan kepraktisan dan keterbatasan daya perangkat mikro kontroler:
 
 1. **Beban Kerja Node Lebih Ringan**
-   Node sensor ESP8266 tidak perlu memikirkan rute pengiriman data yang rumit atau membantu meneruskan data dari node lain (seperti pada topologi Mesh). Dalam kode saat ini, node berjalan terus di main loop: membaca sensor berkala, menjaga Wi-Fi, menyimpan antrean lokal, lalu mengirim data ke cloud atau gateway. Tidak ada pemanggilan mode *deep sleep* pada firmware node.
+   Node sensor ESP8266 tidak perlu memikirkan rute pengiriman data yang rumit atau membantu meneruskan data dari node lain (seperti pada topologi Mesh). Firmware node dirancang berjalan dalam **continuous active loop** (siklus aktif terus-menerus) guna melayani koneksi WebSocket secara real-time, menangani request HTTP server lokal untuk kebutuhan konfigurasi/diagnostik, serta memantau sensor secara dinamis. Perangkat tidak menggunakan mode tidur (*sleep modes*) karena terhubung ke catu daya konstan 5V 3A.
 
 2. **Isolasi Kerusakan yang Baik**
    Jika salah satu node sensor mati listrik atau mengalami kerusakan perangkat keras, node-node lainnya tetap dapat bekerja mengirim data seperti biasa tanpa terganggu sama sekali.

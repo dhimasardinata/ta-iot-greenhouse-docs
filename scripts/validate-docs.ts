@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { sourceFileDocSlugParts } from '../lib/source-links';
+
 const docsRoot = path.join(process.cwd(), 'src/content/docs');
 const markdownLinkPattern = /\[[^\]]+\]\(([^)]+)\)/g;
 const bannedTerms = [/\bTaku\b/i, /service bisnis/i];
@@ -62,6 +64,21 @@ function fileExistsForHref(fromFile: string, href: string): boolean {
     cleanHref.startsWith('mailto:')
   ) {
     return true;
+  }
+
+  if (cleanHref.startsWith('file://')) {
+    const sourceDocSlug = sourceFileDocSlugParts(cleanHref);
+    if (!sourceDocSlug) {
+      return false;
+    }
+
+    const base = path.join(docsRoot, ...sourceDocSlug);
+    return [
+      `${base}.md`,
+      `${base}.mdx`,
+      path.join(base, 'index.md'),
+      path.join(base, 'index.mdx'),
+    ].some((candidate) => fs.existsSync(candidate));
   }
 
   const base = cleanHref.startsWith('/')
@@ -187,7 +204,11 @@ for (const file of docs) {
       }
     }
 
-    for (const match of text.matchAll(markdownLinkPattern)) {
+    const textWithoutCode = text
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`[\s\S]*?`/g, '');
+
+    for (const match of textWithoutCode.matchAll(markdownLinkPattern)) {
       const href = match[1];
       if (!fileExistsForHref(file, href)) {
         errors.push(

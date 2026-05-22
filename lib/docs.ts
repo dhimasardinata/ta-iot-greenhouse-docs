@@ -4,6 +4,8 @@ import path from "node:path";
 import { create, insertMultiple, search } from "@orama/orama";
 import matter from "gray-matter";
 
+import { sourceFileDocHref } from "@/lib/source-links";
+
 export type DocEntry = {
   content: string;
   description?: string;
@@ -194,6 +196,11 @@ export async function searchDocs(query: string): Promise<DocEntry[]> {
 }
 
 export function normalizeDocHref(currentSlug: string[], href: string): string {
+  const sourceDocHref = sourceFileDocHref(href);
+  if (sourceDocHref) {
+    return sourceDocHref;
+  }
+
   if (
     href.startsWith("http://") ||
     href.startsWith("https://") ||
