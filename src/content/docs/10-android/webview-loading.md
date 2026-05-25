@@ -1,37 +1,54 @@
 ---
-title: "WebView Loading"
+title: "WebView Loading Screen"
+description: "Panduan teknis sistem transisi pemuatan halaman, penjelasan layout ProgressBar XML, dan manipulasi status visibilitas view di Kotlin."
 ---
 
-# WebView Loading
+# WebView Loading Screen
 
-Loading WebView adalah proses memuat dashboard web di aplikasi Android.
+Aplikasi Android dilengkapi dengan **Loading Screen Transisional** untuk menjaga kenyamanan pengalaman pengguna (*User Experience*). Sistem ini menyembunyikan browser WebView yang sedang memuat aset dan menampilkan ProgressBar animasi di tengah layar untuk menghindari kedipan layar putih (*white flash*) saat aplikasi dibuka pertama kali.
 
-## Bukti dari Kode
+---
 
-Layout memiliki:
+## 1. Komponen Layout XML (`activity_main.xml`)
 
-- `LinearLayout` dengan id `loadingScreen`,
-- `WebView` dengan id `webView` dan visibility awal `gone`.
+Di dalam berkas [activity_main.xml.txt](file:///home/dhimasardinata/Dokumen/ta/android/activity_main.xml.txt), area layar dibagi menjadi dua penampung bertumpuk menggunakan kontainer **RelativeLayout**:
 
-Di `onPageFinished()`, kode:
+1.  **LinearLayout (`loadingScreen`)**:
+    Ditempatkan tepat di tengah layar (`android:layout_centerInParent="true"`). Kontainer ini menampung ikon aplikasi (`ImageView`), indikator sirkular berputar (`ProgressBar` spinner default Android), dan teks panduan `TextView` *"Memuat Atomic..."*.
+2.  **WebView (`webView`)**:
+    Menyusun area layar secara penuh (`match_parent`), namun disembunyikan sejak awal menggunakan status visibilitas awal:
+    `android:visibility="gone"`
 
-- menyembunyikan loading screen,
-- menampilkan WebView.
+---
 
-## URL yang Dibuka
+## 2. Transisi Visibilitas pada `onPageFinished`
 
-`MainActivity` memanggil:
+Logika pemindahan tampilan diatur oleh siklus callback `WebViewClient` pada berkas [MainActivity.kt.txt](file:///home/dhimasardinata/Dokumen/ta/android/MainActivity.kt.txt):
 
-```txt
-webView.loadUrl("https://ta.atomic.web.id/")
+```mermaid
+graph TD
+    Start[Load URL https://ta.atomic.web.id/] --> RenderLoading[Tampilkan loadingScreen. webView HIDE]
+    RenderLoading --> Loading[Proses Pemuatan Aset HTML/CSS/JS]
+    Loading --> PageFinished{onPageFinished Fired?}
+    PageFinished -- Belum --> Loading
+    PageFinished -- Ya --> Transition[loadingScreen GONE. webView VISIBLE]
 ```
 
-## Risiko
+### Kode Transisi Kotlin:
+```kotlin
+webView.webViewClient = object : WebViewClient() {
+    override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+        // 1. Matikan loading screen secara permanen
+        loadingScreen.visibility = View.GONE
+        // 2. Munculkan WebView dasbor ke hadapan pengguna
+        webView.visibility = View.VISIBLE
+    }
+}
+```
 
-- koneksi internet tidak tersedia,
-- HTTPS/certificate bermasalah,
-- halaman web lambat,
-- login web redirect,
-- loading screen tidak hilang jika page gagal.
+### Arti Status Visibilitas Android:
+*   **`View.VISIBLE`**: Komponen dirender penuh di layar dan memakan ruang tata letak.
+*   **`View.GONE`**: Komponen disembunyikan sepenuhnya dari pandangan, dinonaktifkan dari memori rendering layar, dan ukurannya dibebaskan dari ruang tata letak (sehingga WebView otomatis meluas memenuhi seluruh layar ponsel).
 
-Lanjutkan ke [Error Handling](./error-handling.md).
+Lanjutkan ke bagian **[Permission](./permission.md)** untuk mempelajari hak akses eksternal memori.

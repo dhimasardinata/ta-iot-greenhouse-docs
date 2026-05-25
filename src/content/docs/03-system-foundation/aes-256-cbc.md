@@ -1,34 +1,36 @@
 ---
-title: "AES-256-CBC"
+title: "Keamanan dengan AES-256-CBC"
+description: "Detail teknis implementasi enkripsi AES-256-CBC kustom, perbandingan pustaka BearSSL pada Node dan mbedtls pada Gateway, serta algoritma proteksi replay attack."
 ---
 
 # Keamanan Data dengan AES-256-CBC
 
-Meskipun jalur HTTPS sudah mengamankan data di tengah jalan (*in transit*), firmware node juga memiliki lapisan enkripsi aplikasi untuk jalur lokal/terminal tertentu. Implementasinya menggunakan algoritma **AES-256-CBC** di `CryptoUtils`.
+Meskipun jalur HTTPS telah mengamankan data di tengah jalan (*in transit*) dari pengalihan pihak ketiga, sistem Tugas Akhir ini menambahkan lapisan pertahanan kustom (**Application-Layer Encryption**) untuk mengamankan data transaksi sensitif (seperti kredensial Wi-Fi baru atau perintah mutasi konfigurasi aktuator) yang ditransmisikan melalui jalur WebSocket lokal, WebSerial, dan portal konfigurasi AP.
 
-Mari kita bedah secara mendalam bagaimana algoritma ini bekerja, struktur padding-nya, hingga proteksi replay attack yang diimplementasikan.
+Implementasi enkripsi simetris ini menggunakan algoritma **AES-256-CBC** dengan skema **PKCS7 Padding**.
 
 ---
 
-## Konsep Dasar AES-256-CBC
+## 1. Konsep Dasar Keamanan AES-256-CBC
 
-1. **AES (Advanced Encryption Standard)**
-   Merupakan algoritma enkripsi simetris (menggunakan kunci yang sama untuk mengenkripsi dan mendekripsi). AES membagi data menjadi blok-blok tetap berukuran **16 byte (128 bit)**. Angka **256** menunjukkan panjang kunci rahasia yang digunakan, yaitu **256 bit (32 byte)**, memberikan tingkat keamanan setara standar militer.
-
-2. **CBC (Cipher Block Chaining) Mode**
-   Dalam mode CBC, sebelum sebuah blok plaintext dienkripsi, ia akan di-XOR terlebih dahulu dengan blok ciphertext hasil enkripsi sebelumnya. Hal ini menjamin bahwa dua blok plaintext yang identik akan menghasilkan ciphertext yang berbeda saat dienkripsi.
-
-3. **IV (Initialization Vector)**
-   Karena blok pertama tidak memiliki blok ciphertext sebelumnya untuk di-XOR, kita membutuhkan nilai acak pembuka yang disebut **IV (Initialization Vector)** berukuran **16 byte**. IV harus selalu acak dan unik untuk setiap enkripsi baru.
+1.  **AES-256 (Advanced Encryption Standard)**
+    Algoritma enkripsi simetris yang membagi data plaintext menjadi blok-blok tetap berukuran **16 byte (128 bit)**. Kunci keamanan yang digunakan adalah **256 bit (32 byte)**, memberikan tingkat kekuatan kriptografi standar tinggi. Kunci default didefinisikan secara statis:
+    ```text
+    "12345678901234567890123456789012"
+    ```
+2.  **Mode CBC (Cipher Block Chaining)**
+    Setiap blok plaintext akan di-XOR dengan blok ciphertext hasil enkripsi sebelumnya sebelum dienkripsi. Dengan skema ini, dua blok plaintext yang identik akan menghasilkan ciphertext yang berbeda, mempersulit pola analisis data.
+3.  **Initialization Vector (IV)**
+    Karena blok pertama tidak memiliki ciphertext pendahulu, sistem memerlukan **IV** acak berukuran **16 byte** sebagai nilai XOR pembuka. IV harus unik dan acak pada setiap transaksi enkripsi baru.
 
 ```mermaid
 flowchart TD
-    subgraph CBC1["Enkripsi CBC - Blok Pertama"]
+    subgraph CBC["Mekanisme Enkripsi CBC - Blok Pertama"]
         P1[Plaintext Blok 1]
         IV[Initialization Vector - 16 Byte]
         XOR1((XOR))
         Key[Kunci Rahasia - 32 Byte]
-        AES[Algoritma Enkripsi AES]
+        AES[Engine Enkripsi AES]
         C1[Ciphertext Blok 1]
 
         P1 --> XOR1
@@ -41,66 +43,72 @@ flowchart TD
 
 ---
 
-## Mekanisme PKCS7 Padding
+## 2. Struktur Mekanisme PKCS7 Padding
 
-Karena AES mengharuskan panjang data yang dienkripsi berkelipatan tepat **16 byte**, data asli (plaintext) yang ukurannya tidak pas harus diberi ganjalan (**padding**). Sistem ini menggunakan standar **PKCS7 Padding**.
+AES beroperasi pada blok biner berukuran kelipatan pas **16 byte**. Jika plaintext asli tidak memenuhi kelipatan tersebut, byte tambahan (**padding**) akan disisipkan di akhir data dengan aturan: **nilai setiap byte padding yang ditambahkan adalah sama dengan jumlah byte padding itu sendiri**.
 
-Aturan PKCS7 sangat sederhana: **Nilai byte padding yang ditambahkan adalah sama dengan jumlah byte yang ditambahkan.**
+*   **Kasus Kurang 3 Byte (Contoh 13 Byte Plaintext)**:
+    Sistem akan menambahkan 3 byte padding di akhir bernilai `0x03`.
+    *   *Plaintext*: `[D A T A A S L I D A T A A]` (13 byte)
+    *   *Padded*: `[D A T A A S L I D A T A A] [0x03] [0x03] [0x03]` (16 byte)
+*   **Kasus Pas Kelipatan 16 Byte**:
+    Sistem **wajib** menambahkan 1 blok padding penuh (16 byte) baru bernilai `0x10` (desimal 16). Hal ini dilakukan agar saat dekripsi, sistem tidak membuang data asli yang kebetulan berakhiran dengan nilai byte kecil yang menyerupai padding.
 
-* **Contoh 1 (Butuh 3 byte padding):**
-  Jika panjang data adalah 13 byte (kurang 3 byte untuk mencapai 16), kita menambahkan 3 byte di akhir dengan nilai `0x03`.
-  `Plaintext Asli:  [D A T A A S L I D A T A A]` (13 byte)
-  `Setelah Padding: [D A T A A S L I D A T A A] [0x03] [0x03] [0x03]` (16 byte)
-
-* **Contoh 2 (Pas kelipatan 16 byte):**
-  Jika data asli sudah pas berukuran 16 byte, kita *wajib* menambahkan satu blok padding penuh berisi 16 byte dengan nilai `0x10` (desimal 16). Ini dilakukan agar saat didekripsi, sistem tidak bingung membedakan apakah byte terakhir adalah data asli atau padding.
-
-Saat proses dekripsi, sistem akan membaca nilai byte paling terakhir (misal `N`), memverifikasi apakah `N` byte terakhir memang bernilai `N`, lalu membuang `N` byte tersebut untuk mendapatkan data asli.
+Di sisi penerima, setelah didekripsi, sistem akan memeriksa byte terakhir (misalnya bernilai `N`), memvalidasi apakah memang benar `N` byte terakhir bernilai `N`, lalu memotong byte-byte tersebut untuk mendapatkan data asli.
 
 ---
 
-## Format Payload Transmisi
+## 3. Komparasi Dual Implementasi Kriptografi C++
 
-Data terenkripsi dikirimkan dalam format teks ringkas yang dipisahkan oleh tanda titik dua (`:`):
+Sistem memiliki dua implementasi C++ yang disesuaikan dengan library tiap perangkat:
+
+### A. Sisi Firmware Node (ESP8266) - BearSSL
+Karena keterbatasan RAM bebas pada modul ESP8266 (~30 KB-40 KB), file [CryptoUtils.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/support/CryptoUtils.cpp) dan [CryptoUtils.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/support/CryptoUtils.h) dioptimalkan secara ketat:
+*   **Engine BearSSL**: Menggunakan pustaka BearSSL (`bearssl/bearssl.h`) yang hemat memori. Konteks enkripsi/dekripsi dibungkus di dalam kelas `CryptoUtils::AES_CBC_Cipher`.
+*   **Pencegahan Stack Overflow**: Konteks `br_aes_ct_cbcenc_keys` dan buffer kerja scratch dialokasikan pada memori **Heap** menggunakan penunjuk pintar `std::unique_ptr` untuk mencegah ledakan penggunaan memori pada Stack saat fungsi dipanggil.
+*   **Daur Ulang Memori (Purge Memory under TLS Pressure)**:
+    Protokol TLS/HTTPS BearSSL membutuhkan heap yang cukup. Di `node/include/config/constants.h`, guard TLS terlihat memakai `TLS_MIN_TOTAL_HEAP = 8000`, `TLS_MIN_SAFE_BLOCK_SIZE = 4096`, `TLS_RX_BUF_SIZE = 2048`, dan `TLS_TX_BUF_SIZE = 1024`. Pada saat inisiasi koneksi HTTPS cloud, fungsi `prepareTlsHeap()` di [ApiClient.Security.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.Security.cpp#L41-L62) dapat memanggil:
+    ```cpp
+    CryptoUtils::releaseMainCipherScratch();
+    CryptoUtils::releaseWsCipher();
+    ```
+    Langkah ini membebaskan buffer instansiasi cipher AES dari memori agar TLS memiliki cukup RAM bebas untuk proses jabat tangan (*handshake*) tanpa memicu crash *Out of Memory*.
+
+### B. Sisi Firmware Gateway (ESP32) - mbedtls
+Pada gateway ESP32, file [CryptoUtils.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/CryptoUtils.cpp) dan [CryptoUtils.h](file:///home/dhimasardinata/Dokumen/ta/gateway/include/CryptoUtils.h) memakai API kriptografi dari ESP-IDF/mbedtls:
+*   **Engine mbedtls**: Memanfaatkan pustaka internal ESP-IDF `mbedtls/aes.h` dan `mbedtls/base64.h`.
+*   **IV dari `esp_random()`**: Vektor IV dibuat dengan mengambil byte dari `esp_random()`.
+*   **Buffer dinamis**: Implementasi gateway memakai `std::vector<uint8_t>` untuk buffer plaintext/ciphertext dan fungsi `mbedtls_base64_encode` / `mbedtls_base64_decode` untuk konversi Base64.
+
+---
+
+## 4. Format Payload Transmisi Data
+
+Pesan terenkripsi dikirimkan dalam format teks string ringkas yang dipisahkan oleh tanda titik dua (`:`):
 
 $$\text{Payload} = \text{Base64(IV)} : \text{Base64(Ciphertext)}$$
 
-* **Base64(IV):** IV acak (16 byte) yang dikodekan ke teks Base64 (~24 karakter).
-* **Base64(Ciphertext):** Data terenkripsi (kelipatan 16 byte) yang dikodekan ke Base64.
-
-Penerima data cukup memisahkan string menggunakan pemisah `:`, melakukan dekode Base64 pada masing-masing bagian, lalu memasukkannya ke mesin dekripsi AES.
+Penerima data cukup memisahkan string menggunakan fungsi `indexOf(':')`, melakukan dekode Base64 pada masing-masing substring ke dalam array byte biner, lalu menjalankan fungsi dekripsi AES.
 
 ---
 
-## Proteksi Replay Attack (Timestamp Prefix)
+## 5. Proteksi Serangan Replay (Timestamp Skew Window)
 
-Salah satu celah keamanan terbesar pada perintah jarak jauh adalah **Replay Attack**. Penyerang dapat merekam paket data perintah terenkripsi, misalnya perintah menyalakan relay dehumidifier 2 kW, lalu mengirimkannya kembali ke node di waktu lain untuk menyalakan aktuator besar itu tanpa izin. Meskipun penyerang tidak tahu isi pesannya, paket lama itu masih bisa terlihat seperti payload terenkripsi yang valid jika tidak ada pemeriksaan waktu.
-
-Untuk mengatasinya, sistem kita menyisipkan **Unix Timestamp 4-byte** (dalam format Big Endian/Network Byte Order) tepat di awal plaintext sebelum enkripsi dilakukan.
+Untuk mencegah **Replay Attack** (di mana penyerang merekam data perintah terenkripsi, misal mutasi jadwal relay aktif, lalu mengirimkannya kembali di lain hari untuk menyabotase greenhouse), sistem menyisipkan **Unix Timestamp 4-byte** (format Big Endian) tepat di depan plaintext sebelum proses enkripsi.
 
 ```text
-Plaintext Sebelum Enkripsi = [Timestamp (4-Byte)] + [Pesan Asli]
+Struktur Plaintext = [Unix Timestamp (4-Byte)] + [Pesan Asli JSON]
 ```
 
-Mekanisme Validasi Penerimaan:
-1. Penerima mendekripsi data dan memisahkan 4 byte pertama.
-2. 4 byte tersebut disusun kembali menjadi angka timestamp Unix (waktu detik).
-3. Penerima mengambil waktu saat ini dari jam perangkat (disinkronkan lewat NTP).
-4. Penerima menghitung selisih waktu: $\Delta t = |t_{\text{sekarang}} - t_{\text{payload}}|$.
-5. Payload **ditolak** jika $\Delta t$ melebihi batas toleransi (*skew window*). Nilai default ketat di kode saat ini adalah **30 detik**, dapat dilonggarkan sampai batas maksimum **900 detik**.
+### Prosedur Validasi Penerimaan:
+1.  Penerima mendekripsi payload dan mengekstrak 4 byte pertama menjadi timestamp biner.
+2.  Penerima mengambil waktu epoch saat ini ($t_{\text{sekarang}}$) dari jam sistem. Pada node, kode memakai `time(nullptr)` dan melewati cek skew jika waktu belum sinkron. Pada gateway, jam sistem dapat diisi dari RTC fisik, NTP, HTTP time, atau waktu modem sesuai jalur `RTCManager`.
+3.  Sistem menghitung selisih waktu mutlak:
+    $$\Delta t = |t_{\text{sekarang}} - t_{\text{payload}}|$$
+4.  Penerima memvalidasi nilai tersebut terhadap **Skew Window** konfigurasi:
+    *   **Strict Window**: `30 detik` (digunakan pada saat sinkronisasi ketat).
+    *   **Soft Window (Default)**: `300 detik` (toleransi toleran jika jam RTC perangkat sedikit bergeser dari server).
+    *   **Max Window**: `900 detik`.
+5.  Jika $\Delta t$ melampaui batas skew window, data langsung dibuang secara sepihak dan dianggap tidak valid demi keamanan.
 
----
-
-## Implementasi di Codebase
-
-Aktivitas kriptografi ini tersebar di dua lingkungan yang berbeda:
-
-1. **Sisi Firmware Node (C++) - `CryptoUtils.cpp`**
-   Menggunakan mesin kriptografi **BearSSL** bawaan SDK ESP8266. Enkripsi/dekripsi dibungkus dalam kelas `CryptoUtils::AES_CBC_Cipher`. IV dibuat dari `os_get_random()` lalu dicampur dengan `micros()` dan RSSI Wi-Fi. Buffer kerja dialokasikan lewat `std::unique_ptr` agar bisa dilepas saat tekanan heap tinggi.
-
-2. **Sisi Browser (JavaScript) - `crypto.js`**
-   Browser menggunakan file kustom `crypto.js` yang menyediakan antarmuka minimalis mirip library CryptoJS. Skrip ini sengaja ditulis secara mandiri (~15 KB) untuk menggantikan library CryptoJS yang berukuran besar (>150 KB) agar muat di dalam partisi Flash memory LittleFS yang terbatas pada perangkat ESP8266.
-
-Catatan batas fakta: jalur cloud `ApiController::saveSensorData` pada repo ini menerima JSON biasa lewat HTTPS. Jadi halaman ini menjelaskan mekanisme AES yang tersedia di firmware/web lokal, bukan berarti semua payload cloud Laravel selalu didekripsi AES.
-
-Lanjutkan ke halaman baru [CRC32](./crc32.md) untuk mempelajari bagaimana integritas struktur data internal dilindungi dari kerusakan memori fisik!
+Lanjutkan ke halaman **[Integritas CRC32](./crc32.md)** untuk mempelajari bagaimana data pada memori fisik dan flash LittleFS dilindungi dari kerusakan biner.

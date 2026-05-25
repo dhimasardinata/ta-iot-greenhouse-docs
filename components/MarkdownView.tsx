@@ -59,7 +59,7 @@ async function renderCodeFigure({
 
   return (
     <figure
-      className="my-6 overflow-hidden rounded border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#24292e]"
+      className="scroll-hint-x my-6 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#24292e]"
       key={key}
     >
       {displayLanguage ? (
@@ -195,7 +195,7 @@ function renderTable(lines: string[], currentSlug: string[], key: number): React
   const [head, ...body] = rows;
 
   return (
-    <div className="my-6 overflow-x-auto rounded border border-zinc-200 dark:border-zinc-800" key={key}>
+    <div className="scroll-hint-x my-6 overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800" key={key}>
       <table className="min-w-full border-collapse text-sm">
         <thead className="bg-zinc-100 text-left dark:bg-zinc-900">
           <tr>
@@ -326,10 +326,10 @@ export async function MarkdownView({ content, slug }: MarkdownViewProps) {
         .replace(/^-|-$/g, '');
       const className =
         level === 1
-          ? 'mb-5 mt-0 text-3xl font-semibold tracking-normal text-zinc-950 dark:text-zinc-50'
+          ? 'mb-5 mt-0 text-2xl font-semibold tracking-normal text-zinc-950 sm:text-3xl dark:text-zinc-50'
           : level === 2
-            ? 'mb-3 mt-10 border-t border-zinc-200 pt-7 text-2xl font-semibold tracking-normal text-zinc-950 dark:border-zinc-800 dark:text-zinc-50'
-            : 'mb-3 mt-7 text-xl font-semibold tracking-normal text-zinc-950 dark:text-zinc-50';
+            ? 'mb-3 mt-10 border-t border-zinc-200 pt-7 text-xl font-semibold tracking-normal text-zinc-950 sm:text-2xl dark:border-zinc-800 dark:text-zinc-50'
+            : 'mb-3 mt-7 text-lg font-semibold tracking-normal text-zinc-950 sm:text-xl dark:text-zinc-50';
 
       const headingContent = <Inline currentSlug={slug} text={text} />;
       if (level === 1) {

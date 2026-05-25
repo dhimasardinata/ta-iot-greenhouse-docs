@@ -4,108 +4,56 @@ title: "Storage, Cache, dan OTA Firmware"
 
 # Storage, Cache, dan OTA Firmware
 
-Firmware greenhouse menyimpan konfigurasi, cache data sensor, log, credential, dan firmware update. Storage tidak hanya soal tempat menyimpan file, tetapi juga soal kapan aman menulis, bagaimana recovery saat crash, dan bagaimana mencegah data hilang ketika jaringan gagal.
+Penyimpanan lokal pada firmware memegang peranan krusial saat konektivitas terputus. Sistem IoT pada greenhouse ini menggunakan berbagai jenis media penyimpanan untuk mengelola konfigurasi, mencatat data sensor sementara (*caching*), dan memfasilitasi pembaruan sistem nirkabel (*Over-The-Air* atau OTA).
 
-## Jenis Storage
+---
 
-| Storage | Target | Dipakai Untuk |
-|---|---|---|
-| LittleFS | Node ESP8266 | Config, cache, file update, halaman runtime. |
-| RTC memory / SRAM cache | Node | Cache cepat dan recovery record sensor. |
-| Flash `PROGMEM` | Node dan gateway | Asset web, sertifikat, string, tabel CRC. |
-| Preferences / NVS | Gateway ESP32 | Config dan credential yang persist. |
-| SD Card | Gateway | Log CSV, data QoS, log operasional. |
-| Partisi OTA | Gateway ESP32 | Slot firmware untuk update lebih aman. |
+## 1. Jenis Media Penyimpanan (Storage)
 
-## Cache Data Sensor
+Tabel berikut menunjukkan pembagian tanggung jawab media penyimpanan di tingkat Node (ESP8266) dan Gateway (ESP32):
 
-Cache menjaga data ketika upload gagal. Data sensor bisa dibuat, disimpan, dikirim ulang, lalu dihapus setelah sukses.
+| Media Penyimpanan | Perangkat | Deskripsi Penggunaan | File Terkait |
+| :--- | :--- | :--- | :--- |
+| **LittleFS** | Node | Menyimpan file konfigurasi statis, buffer data sensor darurat, dan file aset web lokal. | [CacheManager.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/storage/CacheManager.h) |
+| **RTC User Memory** | Node | Penyimpanan RAM yang tetap hidup selama *deep sleep* atau setelah *software crash*. Digunakan untuk antrean sensor berkecepatan tinggi. | [RtcManager.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/storage/RtcManager.h) |
+| **Preferences (NVS)** | Gateway | Menyimpan konfigurasi seperti kredensial Wi-Fi/GPRS, pengaturan GPRS, dan beberapa state kontrol/threshold. | [ConfigManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/ConfigManager.cpp) |
+| **SD Card** | Gateway | Penyimpanan jangka panjang untuk log CSV dari data sensor IoT dan QoS jaringan. | [SDCardLogger.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/SDCardLogger.cpp) |
+| **Partisi Flash Khusus**| Gateway | Skema pembagian ruang flash ESP32 untuk membagi slot aplikasi utama dan slot OTA. | `gateway/partitions_custom.csv` |
 
-Hal penting:
+---
 
-- record perlu punya panjang dan CRC,
-- queue perlu tahu head/tail,
-- record gagal baca tidak boleh menghapus semua cache,
-- cache penuh perlu backpressure,
-- data live perlu emergency queue jika storage utama bermasalah.
+## 2. Manajemen Antrean Cache Data Sensor
 
-Edge case:
+Saat jaringan terputus, data sensor tidak boleh hilang. Firmware mengimplementasikan sistem antrean data berlapis:
 
-- listrik mati saat write,
-- CRC mismatch pada satu record,
-- record terkirim tetapi gagal dihapus,
-- data terkirim ke gateway dan cloud dengan status yang tidak sinkron,
-- cache LittleFS penuh,
-- RTC cache hilang setelah reset tertentu.
+1. **RTC Cache**: Data sensor ditulis pertama kali ke memori RTC yang cepat menggunakan [RtcManager.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/storage/RtcManager.h).
+2. **LittleFS Backup**: Jika koneksi terputus cukup lama hingga RTC penuh, data dipindahkan ke file flash LittleFS melalui [ApiClient.QueueStorage.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.QueueStorage.cpp).
+3. **Emergency Queue**: Jika LittleFS mengalami error baca/tulis, data dialihkan ke antrean darurat RAM yang dikelola di [ApiClient.QueueEmergency.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.QueueEmergency.cpp).
 
-## Konfigurasi
+### Integritas Data dengan CRC
+Setiap record data sensor yang disimpan dalam cache dilengkapi dengan checksum CRC. Saat data dibaca kembali untuk dikirim ke server, CRC dihitung ulang dan dicocokkan. Record yang korup akan langsung dieliminasi secara terisolasi tanpa merusak sisa file cache lainnya.
 
-Konfigurasi firmware meliputi:
+---
 
-- token upload,
-- token OTA,
-- URL API,
-- gateway host/IP,
-- Wi-Fi credential,
-- password admin,
-- mode cloud/edge/auto,
-- calibration.
+## 3. Proses Pembaruan Firmware (OTA) dan Boot Guard
 
-Node memakai buffer ukuran tetap dan config manager. Gateway memakai Preferences/NVS dan halaman portal.
+Pembaruan firmware jarak jauh (*Over-The-Air*) dikelola secara aman oleh [OtaManager.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/ota/OtaManager.h). Selama proses OTA berjalan, firmware akan menangguhkan pembacaan sensor dan transmisi data untuk menghindari kelangkaan memori dan gangguan watchdog.
 
-Edge case:
+### Proteksi Boot Loop Menggunakan BootGuard
+Salah satu risiko terbesar OTA adalah firmware baru berhasil di-flash tetapi mengalami crash berulang (*boot loop*) sesaat setelah dinyalakan. Untuk mengantisipasi ini, sistem menggunakan modul **BootGuard** ([BootGuard.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/ota/BootGuard.h)):
 
-- config lama punya format berbeda,
-- token kosong perlu fallback atau penolakan jelas,
-- URL HTTP plain perlu dibatasi jika insecure mode tidak diizinkan,
-- credential perlu disimpan tanpa bocor ke log,
-- perubahan config perlu memicu service yang bergantung pada config.
+1. Saat boot awal, firmware meningkatkan nilai `crashCount` di memori RTC stabil.
+2. Jika firmware berjalan stabil cukup lama, fungsi `markStable()` dipanggil dari `main.cpp` untuk mereset `crashCount` kembali ke `0`.
+3. Jika perangkat crash sebelum stabil, `crashCount` akan meningkat. [BootManager.cpp](file:///home/dhimasardinata/Dokumen/ta/node/src/BootManager.cpp) memakai level counter ini untuk menghapus `/cache.dat`, memformat LittleFS pada level lebih tinggi, atau melakukan cooldown/restart. Source yang terlihat tidak menunjukkan rollback otomatis ke partisi firmware cadangan.
 
-## OTA
-
-OTA adalah pembaruan firmware lewat jaringan. Project ini punya beberapa jalur:
-
-- ArduinoOTA,
-- web OTA lokal,
-- cloud OTA,
-- file update yang ditulis ke filesystem lalu di-flash,
-- boot guard untuk mendeteksi boot gagal.
-
-OTA perlu pause atau menunda pekerjaan lain karena update firmware memakai waktu dan memori besar.
-
-Risiko OTA:
-
-- firmware tidak cocok board,
-- ruang flash tidak cukup,
-- download putus,
-- file `.bin` kosong atau rusak,
-- watchdog reset di tengah update,
-- update sukses tetapi boot berikutnya crash,
-- token OTA salah atau endpoint salah.
-
-## Boot Recovery
-
-Boot manager dan boot guard membantu firmware pulih dari crash berulang. Recovery bisa berupa:
-
-- hapus cache sensor,
-- format filesystem,
-- masuk safe mode portal,
-- clear crash counter setelah stabil.
-
-Ini penting karena perangkat greenhouse tidak selalu mudah dibongkar fisik.
-
-## Flash Wear
-
-Flash punya batas tulis. Menulis config atau schedule terlalu sering bisa mempercepat aus. Karena itu gateway menulis hasil cloud ke NVS hanya jika berubah, dan cache perlu batching/flush yang masuk akal.
-
-## File yang Relevan
-
-- [node/lib/NodeCore/storage/CacheManager.h](../14-complete-file-walkthrough/node/lib/NodeCore/storage/CacheManager.h.md)
-- [node/lib/NodeCore/storage/RtcManager.h](../14-complete-file-walkthrough/node/lib/NodeCore/storage/RtcManager.h.md)
-- [node/lib/NodeCore/api/ApiClient.QueueStorage.cpp](../14-complete-file-walkthrough/node/lib/NodeCore/api/ApiClient.QueueStorage.cpp.md)
-- [node/lib/NodeCore/api/ApiClient.QueueEmergency.cpp](../14-complete-file-walkthrough/node/lib/NodeCore/api/ApiClient.QueueEmergency.cpp.md)
-- [node/lib/NodeCore/ota/OtaManager.h](../14-complete-file-walkthrough/node/lib/NodeCore/ota/OtaManager.h.md)
-- [node/lib/NodeCore/ota/BootGuard.h](../14-complete-file-walkthrough/node/lib/NodeCore/ota/BootGuard.h.md)
-- [node/src/BootManager.cpp](../14-complete-file-walkthrough/node/src/BootManager.cpp.md)
-- [gateway/src/SDCardLogger.cpp](../14-complete-file-walkthrough/gateway/src/SDCardLogger.cpp.md)
-- [gateway/partitions_custom.csv](../14-complete-file-walkthrough/config/gateway/partitions_custom.csv.md)
+Struktur penyimpanan data diagnostik BootGuard dirancang aman menggunakan checksum internal:
+```cpp
+struct alignas(4) RtcData {
+  uint32_t magic;
+  uint32_t crashCount;
+  uint32_t lastReasonRaw;  // Alasan reboot terakhir (RebootReason)
+  uint32_t lastCrashTime;  // Timestamp untuk melacak tingkat crash rate
+  uint32_t crc;
+};
+```
+Fungsi `calculateCRC` memastikan data diagnostik ini tidak rusak selama proses boot paksa atau gangguan tegangan listrik (*brownout*).

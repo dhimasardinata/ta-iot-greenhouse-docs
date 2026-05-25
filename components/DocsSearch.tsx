@@ -88,11 +88,11 @@ export function DocsSearch({
       <div className="relative">
         <Search
           aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
         />
         <input
           autoFocus={autoFocus}
-          className="h-10 w-full rounded border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-950 outline-none ring-0 placeholder:text-zinc-400 focus:border-emerald-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-emerald-400"
+          className="h-12 w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-3 text-sm text-zinc-950 outline-none ring-0 placeholder:text-zinc-400 focus:border-emerald-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-emerald-400"
           id={inputId}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Cari modul, file, atau konsep"
@@ -102,13 +102,13 @@ export function DocsSearch({
       </div>
 
       {trimmed.length >= 2 ? (
-        <div className="max-h-80 overflow-y-auto rounded border border-zinc-200 bg-white text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="max-h-80 overflow-y-auto rounded-lg border border-zinc-200 bg-white text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           {loading ? (
-            <p className="px-3 py-2 text-zinc-500 dark:text-zinc-400">
+            <p className="px-3 py-3 text-zinc-500 dark:text-zinc-400">
               Mencari...
             </p>
           ) : results.length === 0 ? (
-            <p className="px-3 py-2 text-zinc-500 dark:text-zinc-400">
+            <p className="px-3 py-3 text-zinc-500 dark:text-zinc-400">
               Tidak ada hasil.
             </p>
           ) : (
@@ -116,7 +116,7 @@ export function DocsSearch({
               {results.map((result) => (
                 <li key={result.url}>
                   <Link
-                    className="block px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className="block px-3 py-3 hover:bg-zinc-100 active:bg-zinc-200 dark:hover:bg-zinc-900 dark:active:bg-zinc-800"
                     href={result.url}
                     onClick={() => {
                       setQuery("");

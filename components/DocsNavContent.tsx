@@ -68,7 +68,7 @@ function ModuleList({
               <Link
                 aria-current={href === pathname ? "page" : undefined}
                 className={[
-                  "flex items-start justify-between gap-3 rounded border px-3 py-2 text-sm transition-colors",
+                  "flex items-start justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors",
                   active
                     ? "border-emerald-500 bg-emerald-50 text-emerald-950 dark:border-emerald-500 dark:bg-emerald-950/40 dark:text-emerald-50"
                     : "border-zinc-200 hover:border-emerald-300 hover:bg-emerald-50 dark:border-zinc-800 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/30",
@@ -112,7 +112,7 @@ function NavTree({
         const active = node.href === pathname;
         const activeBranch = containsPath(node, pathname);
         const linkClassName = [
-          "block rounded px-2 py-1.5 text-sm transition-colors",
+          "block rounded-lg px-2.5 py-2.5 text-sm transition-colors",
           active
             ? "bg-emerald-50 font-medium text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"
             : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50",
@@ -127,7 +127,7 @@ function NavTree({
             {node.title}
           </Link>
         ) : (
-          <span className="block px-2 py-1.5 text-sm font-medium text-zinc-950 dark:text-zinc-50">
+          <span className="block px-2.5 py-2.5 text-sm font-medium text-zinc-950 dark:text-zinc-50">
             {node.title}
           </span>
         );
@@ -141,7 +141,7 @@ function NavTree({
             <details open={depth < 1 || activeBranch}>
               <summary
                 className={[
-                  "cursor-pointer rounded px-2 py-1.5 text-sm font-medium transition-colors",
+                  "cursor-pointer rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
                   activeBranch
                     ? "bg-zinc-100 text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50"
                     : "text-zinc-950 hover:bg-zinc-100 dark:text-zinc-50 dark:hover:bg-zinc-900",
@@ -153,7 +153,7 @@ function NavTree({
                 <Link
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "mt-1 block rounded px-2 py-1.5 text-sm transition-colors",
+                    "mt-1 block rounded-lg px-2.5 py-2.5 text-sm transition-colors",
                     active
                       ? "bg-emerald-50 font-medium text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"
                       : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50",

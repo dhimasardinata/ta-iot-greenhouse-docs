@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { BookOpen, Code2, Layers, Menu, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { DocsNavContent } from "@/components/DocsNavContent";
@@ -9,6 +10,24 @@ import type { NavNode } from "@/lib/docs";
 type MobileDocsNavProps = {
   nodes: NavNode[];
 };
+
+const quickLinks = [
+  {
+    href: "/docs/14-complete-file-walkthrough/coverage-report",
+    icon: BookOpen,
+    label: "Coverage",
+  },
+  {
+    href: "/docs/99-generated/concept-coverage",
+    icon: Layers,
+    label: "Concepts",
+  },
+  {
+    href: "/api-reference",
+    icon: Code2,
+    label: "API Reference",
+  },
+];
 
 export function MobileDocsNav({ nodes }: MobileDocsNavProps) {
   const [open, setOpen] = useState(false);
@@ -37,11 +56,11 @@ export function MobileDocsNav({ nodes }: MobileDocsNavProps) {
       <button
         aria-controls="mobile-docs-nav"
         aria-expanded={open}
-        className="inline-flex h-9 items-center gap-2 rounded border border-zinc-200 px-3 text-sm font-medium text-zinc-800 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-900 dark:border-zinc-800 dark:text-zinc-100 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/30"
+        className="inline-flex h-11 items-center gap-2 rounded-lg border border-zinc-200 px-3.5 text-sm font-medium text-zinc-800 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-900 active:bg-emerald-100 dark:border-zinc-800 dark:text-zinc-100 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/30"
         onClick={() => setOpen(true)}
         type="button"
       >
-        <Menu aria-hidden="true" className="h-4 w-4" />
+        <Menu aria-hidden="true" className="h-5 w-5" />
         Navigasi
       </button>
 
@@ -54,12 +73,12 @@ export function MobileDocsNav({ nodes }: MobileDocsNavProps) {
         >
           <button
             aria-label="Tutup navigasi"
-            className="absolute inset-0 bg-zinc-950/45"
+            className="mobile-drawer-backdrop absolute inset-0 bg-zinc-950/45"
             onClick={() => setOpen(false)}
             type="button"
           />
           <aside
-            className="absolute inset-y-0 left-0 flex w-[22rem] max-w-[calc(100vw-2rem)] flex-col border-r border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
+            className="mobile-drawer-panel absolute inset-y-0 left-0 flex w-[22rem] max-w-[calc(100vw-2rem)] flex-col border-r border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
             id="mobile-docs-nav"
           >
             <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
@@ -71,13 +90,29 @@ export function MobileDocsNav({ nodes }: MobileDocsNavProps) {
               </p>
               <button
                 aria-label="Tutup navigasi"
-                className="inline-flex h-9 w-9 items-center justify-center rounded border border-zinc-200 text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-200 text-zinc-700 transition-colors hover:bg-zinc-100 active:bg-zinc-200 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
                 onClick={() => setOpen(false)}
                 type="button"
               >
-                <X aria-hidden="true" className="h-4 w-4" />
+                <X aria-hidden="true" className="h-5 w-5" />
               </button>
             </div>
+
+            {/* Quick links for mobile-only access */}
+            <div className="flex gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+              {quickLinks.map((link) => (
+                <Link
+                  className="flex flex-1 flex-col items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-2.5 text-center text-xs font-medium text-zinc-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-900 active:bg-emerald-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/30"
+                  href={link.href}
+                  key={link.href}
+                  onClick={() => setOpen(false)}
+                >
+                  <link.icon aria-hidden="true" className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
               <DocsNavContent
                 compact

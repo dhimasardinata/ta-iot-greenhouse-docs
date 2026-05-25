@@ -4,72 +4,123 @@ title: "Kondisi dan Perulangan"
 
 # Kondisi dan Perulangan
 
-Program tidak selalu berjalan lurus dari atas ke bawah. Program sering perlu memilih jalan atau mengulang pekerjaan. Di sinilah kondisi dan perulangan dipakai.
+Halo, rekan developer! Pada bab ini, kita akan membahas bagaimana program mengambil keputusan (**kondisi**) dan melakukan pekerjaan berulang (**perulangan**).
 
-## Kondisi
+Tanpa kedua struktur kontrol ini, program kita hanya bisa berjalan lurus dari atas ke bawah. Padahal, sistem greenhouse kita dituntut untuk responsif terhadap perubahan lingkungan secara terus-menerus.
 
-Kondisi adalah pertanyaan yang jawabannya benar atau salah.
+Mari kita bedah implementasi nyata struktur kontrol ini langsung dari berkas kode proyek kita!
 
-Contoh dalam greenhouse:
+---
 
-```txt
-Jika suhu lebih tinggi dari batas aman, nyalakan fan.
-Jika kelembapan terlalu tinggi, aktifkan dehumidifier.
-Jika Wi-Fi gagal, coba lagi atau simpan data ke cache.
+## 1. Kondisi (If-Else & Switch-Case)
+
+Struktur kondisi digunakan untuk mengontrol jalannya program berdasarkan syarat tertentu.
+
+### A. Contoh Logika Hysteresis (If-Else dalam Lambda C++)
+Pada Gateway, kita memiliki fitur *deadband hysteresis* untuk mengendalikan kipas blower atau exhaust. Logika ini mencegah aktuator mati-nyala berulang kali dalam waktu singkat (*chattering*) saat suhu berada tepat di batas ambang.
+
+Buka berkas [gateway/src/RelayController.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/RelayController.cpp). Di dalamnya terdapat fungsi ekspresi lambda berikut:
+
+```cpp
+auto applyDeadband = [&](float val, float vMin, float vMax) -> bool {
+    if (states[rI]) {
+        // Jika relai saat ini SEDANG AKTIF (ON)
+        // Tetap nyalakan jika suhu/kelembapan di atas batas minimum (vMin)
+        return (val > vMin);
+    }
+    // Jika relai saat ini SEDANG MATI (OFF)
+    // Nyalakan hanya jika suhu/kelembapan sudah mencapai atau melewati batas maksimum (vMax)
+    return (val >= vMax);
+};
 ```
 
-Dalam banyak bahasa pemrograman, kondisi ditulis dengan `if`, `else`, atau `switch`.
+**Penjelasan Alur Logika**:
+1.  Program memeriksa status relai saat ini lewat `states[rI]`.
+2.  **Kondisi pertama (`if`)**: Jika relai sudah aktif, kipas tidak akan langsung mati ketika suhu turun sedikit di bawah batas maksimal (`vMax`). Kipas baru mati jika suhu benar-benar turun melewati batas bawah (`vMin`).
+3.  **Kondisi kedua (`return`)**: Jika relai mati, kipas baru boleh hidup jika suhu naik menembus batas atas (`vMax`).
 
-## If dan Else
+### B. Contoh Switch-Case di PHP Backend
+Selain `if-else`, kita menggunakan `switch` ketika ada banyak pilihan nilai yang spesifik. Misalnya, untuk menentukan resolusi waktu grafik berdasarkan rentang jam yang dipilih pengguna.
 
-`if` berarti `jika`. Program menjalankan blok tertentu hanya jika syarat terpenuhi.
+Berikut adalah potongan logika dalam berkas [web/ApiController.php](file:///home/dhimasardinata/Dokumen/ta/web/ApiController.php):
 
-Contoh alur:
+```php
+$sub = match ($range) {
+    'last_1h' => Carbon::now()->subHour(),
+    'last_1w' => Carbon::now()->subWeek(),
+    'last_1m' => Carbon::now()->subMonth(),
+    'today'   => Carbon::today(),
+    default   => Carbon::now()->subDay(),
+};
+```
+*(Catatan: Ekspresi `match` pada PHP 8+ berfungsi serupa dengan `switch-case` klasik tetapi dengan sintaksis yang lebih ringkas).*
 
-1. Baca suhu.
-2. Bandingkan suhu dengan threshold.
-3. Jika suhu melewati threshold, nyalakan aktuator.
-4. Jika tidak, biarkan aktuator mati atau ikuti aturan lain.
+---
 
-## Switch atau Case
+## 2. Perulangan (Loops - For & Foreach)
 
-`switch` atau `case` dipakai ketika pilihan lebih dari dua. Contohnya mode sistem:
+Perulangan digunakan untuk memproses kumpulan data (seperti array data sensor atau daftar jadwal) tanpa perlu menulis kode yang sama berulang kali.
 
-- `cloud`,
-- `edge`,
-- `auto`.
+### A. Perulangan Menghitung Rata-Rata Sensor di PHP
+Ketika memuat dashboard, sistem akan menghitung rata-rata nilai sensor hari ini untuk ditampilkan pada grafik gauge. Kita mengiterasi hasil snapshot database menggunakan perulangan `foreach`.
 
-Mode seperti ini bisa membuat alur program berbeda sesuai kondisi jaringan dan kebutuhan sistem.
+Buka berkas [web/ApiController.php](file:///home/dhimasardinata/Dokumen/ta/web/ApiController.php) pada fungsi `get_average_sensor_data`:
 
-## Perulangan
+```php
+$result = [
+    'temperature' => 0,
+    'humidity' => 0,
+    'light_intensity' => 0,
+    'last_recorded_at' => null,
+];
 
-Perulangan adalah proses mengulang pekerjaan.
+// Perulangan foreach mengiterasi baris demi baris data dari database
+foreach ($snapshot as $row) {
+    // Normalisasi nama kolom sensor menjadi snake_case
+    $key = strtolower(str_replace(' ', '_', $row->name));
 
-Contoh:
+    if (array_key_exists($key, $result)) {
+        // Simpan nilai rata-rata yang telah dibulatkan ke dalam array hasil
+        $result[$key] = round($row->avg_value, 2);
 
-```txt
-Setiap beberapa detik, baca sensor.
-Setiap beberapa menit, kirim data.
-Selama Wi-Fi belum terhubung, coba koneksi ulang.
+        // Periksa kondisi apakah waktu rekam data ini adalah yang terbaru
+        if (!$result['last_recorded_at'] || $row->last_recorded_at > $result['last_recorded_at']) {
+            $result['last_recorded_at'] = $row->last_recorded_at;
+        }
+    }
+}
 ```
 
-Dalam kode, perulangan sering ditulis dengan `for`, `while`, atau loop utama firmware.
+**Mengapa Perulangan ini Penting?**
+Hasil query `$snapshot` berisi daftar rata-rata suhu, kelembapan, dan cahaya. Menggunakan perulangan `foreach`, kita dapat secara dinamis memetakan nilai-nilai tersebut ke dalam array asosiatif `$result` terlepas dari urutan data yang dikembalikan oleh database.
 
-## Risiko Perulangan
+### B. Perulangan Mencocokkan Jadwal Aktif di C++
+Pada firmware Gateway, program harus memeriksa daftar jadwal kontrol yang tersimpan untuk menentukan apakah ada jadwal yang aktif saat ini.
 
-Perulangan harus hati-hati. Jika program terus mengulang tanpa jeda, perangkat bisa macet, watchdog bisa reset, atau jaringan bisa terlalu banyak request.
+Perhatikan perulangan `for` dalam berkas [gateway/src/RelayController.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/RelayController.cpp):
 
-Pada firmware, perulangan perlu memperhatikan:
+```cpp
+for (int i = 0; i < MAX_SCHEDULES; i++) {
+    if (isScheduleActive(activeSchedules[i], currentHour, currentMin)) {
+        lastScheduleActive[rI] = true;
+        lastScheduleId[rI] = activeSchedules[i].id;
 
-- delay,
-- timeout,
-- watchdog,
-- penggunaan memori,
-- batas retry,
-- kondisi keluar dari loop.
+        // Tentukan mode aktuator berdasarkan indeks relai
+        if (rI == RELAY_EXHAUST) scheduledMode = activeSchedules[i].r1Mode;
+        else if (rI == RELAY_DEHUMIDIFIER) scheduledMode = activeSchedules[i].r2Mode;
+        else if (rI == RELAY_BLOWER) scheduledMode = activeSchedules[i].r3Mode;
+        break; // Hentikan perulangan jika jadwal aktif sudah ditemukan
+    }
+}
+```
 
-## Kesimpulan
+Di sini, perulangan `for` melakukan iterasi dari `i = 0` hingga kurang dari `MAX_SCHEDULES`. Begitu program menemukan jadwal yang cocok dengan jam saat ini melalui fungsi `isScheduleActive`, program akan menyimpan konfigurasi mode aktuator lalu memicu perintah `break` untuk segera keluar dari perulangan demi efisiensi CPU mikrokontroler.
 
-Kondisi membuat program bisa mengambil keputusan. Perulangan membuat program bisa melakukan pekerjaan berulang. Dua konsep ini sangat penting dalam pembacaan sensor, retry jaringan, caching, threshold, scheduling, dan kontrol aktuator.
+---
 
-Lanjutkan ke [Fungsi dan Parameter](./fungsi-dan-parameter.md).
+## Tips Developer: Hati-Hati dengan Infinite Loop!
+Di lingkungan mikrokontroler, perulangan yang tidak terkontrol (seperti `while(true)` tanpa jeda) dapat menyebabkan watchdog timer (WDT) mereset perangkat secara paksa karena CPU dianggap macet. Selalu pastikan ada kondisi keluar (*exit condition*) yang jelas atau gunakan interval non-blocking menggunakan timer.
+
+---
+
+Lanjutkan ke langkah berikutnya: **[Fungsi dan Parameter](./fungsi-dan-parameter.md)**.

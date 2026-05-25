@@ -10,6 +10,8 @@
   color-scheme: light dark;
 }
 
+/* Code blocks */
+
 .docs-code .shiki {
   margin: 0;
   overflow-x: auto;
@@ -23,6 +25,8 @@
   min-height: 1.5rem;
 }
 
+/* Math */
+
 .docs-math-inline {
   white-space: nowrap;
 }
@@ -32,6 +36,8 @@
   padding: 0.25rem 0;
 }
 
+/* Shiki dark theme */
+
 :is(.dark, [data-theme='dark']) .docs-code .shiki,
 :is(.dark, [data-theme='dark']) .docs-code .shiki span {
   background-color: var(--shiki-dark-bg) !important;
@@ -39,4 +45,66 @@
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* Mobile drawer animations */
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mobile-drawer-backdrop {
+  animation: drawer-backdrop-in 200ms ease-out both;
+}
+
+.mobile-drawer-panel {
+  animation: drawer-slide-in 250ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Scroll hint gradient for overflowing containers */
+
+.scroll-hint-x {
+  position: relative;
+}
+
+.scroll-hint-x::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2rem;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--scroll-hint-bg, white));
+  opacity: 0.8;
+  border-radius: inherit;
+}
+
+:is(.dark, [data-theme='dark']) .scroll-hint-x::after {
+  --scroll-hint-bg: #09090b;
+}
+
+/* Smooth breadcrumb scrollbar hide */
+
+.breadcrumb-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.breadcrumb-scroll::-webkit-scrollbar {
+  display: none;
 }

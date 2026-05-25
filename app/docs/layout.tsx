@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BackToTop } from "@/components/BackToTop";
 import { DocsNavContent } from "@/components/DocsNavContent";
 import { MobileDocsNav } from "@/components/MobileDocsNav";
 import { getNavTree } from "@/lib/docs";
@@ -49,6 +50,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
         </aside>
         <main className="min-w-0 px-4 py-6 sm:px-8 lg:px-12">{children}</main>
       </div>
+      <BackToTop />
     </div>
   );
 }

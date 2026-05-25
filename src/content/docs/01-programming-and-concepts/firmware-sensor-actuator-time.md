@@ -4,118 +4,67 @@ title: "Sensor, Aktuator, dan Waktu Firmware"
 
 # Sensor, Aktuator, dan Waktu Firmware
 
-Firmware greenhouse berhubungan langsung dengan dunia fisik. Sensor membaca kondisi lingkungan. Aktuator mengubah kondisi. Waktu menentukan kapan data valid, kapan jadwal aktif, dan kapan data dianggap basi.
+Di dalam sistem greenhouse, firmware berinteraksi langsung dengan lingkungan fisik. Sensor membaca parameter lingkungan, modul pemrosesan menormalkan dan mengalibrasi data tersebut, pengatur waktu memastikan sinkronisasi aksi, dan aktuator (relay) mengubah kondisi fisik di dalam greenhouse.
 
-## Sensor
+---
 
-Sensor utama yang terlihat:
+## 1. Sensor: Pengumpulan dan Normalisasi Data
 
-- SHT untuk suhu dan kelembapan,
-- BH1750 untuk cahaya/lux,
-- RSSI dari Wi-Fi sebagai kualitas sinyal,
-- data kamera di backend untuk status kabut pada greenhouse tertentu.
+Firmware membaca data fisik dari berbagai sensor lingkungan:
+- **SHT3x / SHT2x** untuk mengukur suhu (°C) dan kelembapan relatif (%).
+- **BH1750** untuk mengukur intensitas cahaya (Lux).
+- **Wi-Fi RSSI** untuk memantau kekuatan sinyal jaringan.
 
-Firmware perlu membedakan nilai angka dan status validitas. Angka sensor tidak otomatis benar jika sensor gagal, belum stabil, atau baru reboot.
+Agar data dari sensor dapat dipercaya, firmware melakukan sanitasi dan normalisasi di [SensorNormalization.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/sensor/SensorNormalization.h) sebelum data dipaketkan.
 
-Edge case:
+### Validasi dan Normalisasi Nilai Sensor
+Firmware memastikan data berada pada batas fisik yang logis menggunakan fungsi pembatas (*clamp*) dan pengecekan nilai tidak valid (`isfinite`):
+```cpp
+inline bool normalizeTemperature(float& value) {
+  if (!isfinite(value))
+    return false;
+  if (value < -40.0f) value = -40.0f;
+  if (value > 100.0f) value = 100.0f;
+  return true;
+}
+```
 
-- sensor belum siap setelah boot,
-- pembacaan `NaN`,
-- I2C gagal,
-- nilai terlalu ekstrem,
-- cahaya melewati rentang normal,
-- kalibrasi berbeda antar node,
-- data lama masih tersimpan saat sensor offline.
+### Kalibrasi Sensor
+Sensor fisik sering kali memiliki deviasi pembacaan. Firmware menerapkan konfigurasi kalibrasi menggunakan offset penjumlahan untuk suhu dan kelembapan, serta faktor pengali untuk intensitas cahaya:
+- **Suhu Efektif**: Suhu Raw + Offset (didefinisikan di [calibration.h](file:///home/dhimasardinata/Dokumen/ta/node/include/config/calibration.h)).
+- **Intensitas Cahaya Efektif**: Lux Raw × Scaling Factor (misalnya faktor 1.2 untuk kompensasi kaca greenhouse).
 
-## Normalisasi dan Kalibrasi
+Semua logika ini dibungkus dalam [SensorManager.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/sensor/SensorManager.h) pada tingkat node, dan diagregasikan di [SensorDataManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/SensorDataManager.cpp) pada tingkat gateway.
 
-Normalisasi membuat data sensor punya format yang konsisten sebelum dikirim. Kalibrasi mengoreksi offset atau faktor skala.
+---
 
-Contoh:
+## 2. Aktuator: Pengendalian Relay dan SSR
 
-- suhu bisa punya offset,
-- kelembapan bisa punya offset,
-- lux bisa punya scaling factor,
-- snapshot efektif bisa memakai nilai sensor plus koreksi config.
+Gateway berfungsi untuk mengendalikan aktuator fisik (seperti kipas *exhaust*, blower, *dehumidifier*, pompa air, dan lampu LED grow light) melalui modul relay/SSR.
 
-Risiko:
+Sistem kontrol relay diatur pada [RelayController.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/RelayController.cpp). Keputusan untuk menyalakan/mematikan relay didasarkan pada tiga mode:
+1. **Manual Mode**: Perintah paksa langsung dari pengguna (Cloud/Web UI).
+2. **Threshold Mode**: Relay aktif jika nilai sensor berada di luar batas aman yang dikonfigurasi. Validasi threshold ini dilakukan melalui [ThresholdValidation.h](file:///home/dhimasardinata/Dokumen/ta/gateway/include/ThresholdValidation.h).
+3. **Schedule Mode**: Relay aktif berdasarkan rentang waktu tertentu. Validasi format jadwal waktu dikelola di [ScheduleValidation.h](file:///home/dhimasardinata/Dokumen/ta/gateway/include/ScheduleValidation.h).
 
-- kalibrasi salah membuat data terlihat rapi tetapi tidak akurat,
-- offset terlalu besar perlu batas,
-- nilai hasil koreksi tetap perlu validasi,
-- perubahan kalibrasi perlu tercatat agar hasil uji bisa dijelaskan.
+### Logika Failsafe Aktuator
+Untuk mencegah aktuator menyala/mati terlalu cepat yang dapat merusak perangkat (misal kompresor AC), [RelayController.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/RelayController.cpp) menerapkan batas waktu jeda aman (*cooldown* atau *hold time*). Selain itu, jika data sensor terdeteksi kedaluwarsa (*stale data*) karena node mati, sistem otomatis mematikan aktuator sebagai langkah pengamanan (*failsafe*).
 
-## Aktuator
+---
 
-Gateway mengendalikan aktuator seperti blower, exhaust, dehumidifier, relay, atau SSR. Keputusan bisa datang dari:
+## 3. Sinkronisasi Waktu (Time Management)
 
-- threshold sensor,
-- schedule,
-- cloud control,
-- mode manual,
-- failsafe.
+Waktu yang presisi sangat krusial untuk:
+- Memberikan timestamp yang valid pada data sensor untuk visualisasi grafik.
+- Mengeksekusi jadwal kontrol aktuator secara akurat.
+- Melindungi komunikasi data dari serangan *replay protection*.
 
-Aktuator berbeda dari UI biasa karena ada efek fisik. Kesalahan kecil bisa membuat perangkat menyala saat tidak seharusnya.
+Gateway mengelola sinkronisasi waktu lewat [RTCManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/RTCManager.cpp). Kode mencoba memakai RTC fisik DS3231 jika tersedia dan valid, lalu memiliki jalur sinkronisasi lain seperti NTP, HTTP time, atau waktu modem.
 
-Edge case:
+### Sumber Waktu Cadangan (Multi-Source Time)
+Gateway dapat menyinkronkan waktunya dari tiga sumber utama secara hierarkis:
+1. **NTP Server**: Melalui koneksi Wi-Fi ketika terhubung ke internet.
+2. **GSM Network Time**: Dari jaringan seluler lewat modem GPRS jika Wi-Fi mati.
+3. **HTTP Time Header**: Mengekstrak header `Date` dari response API server sebagai fallback terakhir saat port NTP diblokir.
 
-- sensor stale tetapi threshold tetap dipakai,
-- jadwal overlap,
-- cloud control dan local threshold bertentangan,
-- relay aktif saat boot,
-- aktuator perlu hold atau cooldown,
-- perintah manual lupa dimatikan.
-
-## Waktu
-
-Waktu dipakai untuk:
-
-- timestamp data sensor,
-- jadwal aktuator,
-- replay protection,
-- log SD Card,
-- TTL cache,
-- timeout koneksi,
-- interval upload,
-- boot stability window.
-
-Sumber waktu yang terlihat:
-
-- NTP,
-- RTC DS3231,
-- modem network time,
-- HTTP time API,
-- client bootstrap.
-
-Edge case:
-
-- NTP belum sinkron,
-- RTC kehilangan daya,
-- timezone salah,
-- jam mundur,
-- timestamp payload berbeda dari waktu gateway,
-- replay window terlalu ketat saat waktu belum valid.
-
-## Kontrol Berbasis Threshold dan Jadwal
-
-Threshold membaca nilai sensor dan memutuskan kondisi aman/tidak. Jadwal membaca waktu dan menentukan relay yang aktif pada rentang tertentu.
-
-Yang perlu dipahami:
-
-- threshold punya batas min/max,
-- jadwal punya start/end,
-- schedule gateway memakai format relay,
-- UI web menyimpan mode actuator seperti `on`, `off`, atau `threshold`,
-- gateway perlu menentukan prioritas saat beberapa sumber kontrol aktif.
-
-## File yang Relevan
-
-- [node/lib/NodeCore/sensor/SensorManager.h](../14-complete-file-walkthrough/node/lib/NodeCore/sensor/SensorManager.h.md)
-- [node/lib/NodeCore/sensor/SensorNormalization.h](../14-complete-file-walkthrough/node/lib/NodeCore/sensor/SensorNormalization.h.md)
-- [node/include/config/calibration.h](../14-complete-file-walkthrough/node/include/config/calibration.h.md)
-- [gateway/include/ThresholdValidation.h](../14-complete-file-walkthrough/gateway/include/ThresholdValidation.h.md)
-- [gateway/include/ScheduleValidation.h](../14-complete-file-walkthrough/gateway/include/ScheduleValidation.h.md)
-- [gateway/src/RelayController.cpp](../14-complete-file-walkthrough/gateway/src/RelayController.cpp.md)
-- [gateway/src/SensorDataManager.cpp](../14-complete-file-walkthrough/gateway/src/SensorDataManager.cpp.md)
-- [gateway/src/RTCManager.cpp](../14-complete-file-walkthrough/gateway/src/RTCManager.cpp.md)
-- [gateway/src/LCDDisplay.cpp](../14-complete-file-walkthrough/gateway/src/LCDDisplay.cpp.md)
+Waktu aktual yang tersinkronisasi ditampilkan secara langsung di layar LCD lokal melalui [LCDDisplay.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/LCDDisplay.cpp).

@@ -4,51 +4,63 @@ title: "IoT Networking Concepts"
 
 # IoT Networking Concepts
 
-Konsep jaringan yang sering muncul adalah Wi-Fi, SSID, password, captive portal, NTP, REST API, WebSocket, HTTPS, gateway, cloud, edge, retry, timeout, dan payload JSON.
+Jaringan IoT (Internet of Things) adalah fondasi dasar yang memungkinkan node sensor, gateway, web dashboard, dan aplikasi Android saling berkomunikasi. Tanpa pemahaman konsep jaringan yang solid, sangat sulit untuk mendeteksi di mana masalah terjadi ketika data sensor gagal muncul di layar monitor.
 
-Pada sistem greenhouse, jaringan menentukan apakah data sensor bisa sampai ke server, apakah gateway bisa mengontrol aktuator, dan apakah operator bisa membuka dashboard lokal.
+---
 
-## Lapisan Jaringan
+## 1. Lapisan Komunikasi Proyek (Networking Layers)
 
-| Lapisan | Contoh di Project | Masalah yang Ditangani |
-|---|---|---|
-| Fisik/radio | Wi-Fi RSSI, GPRS SIM800 | sinyal lemah, disconnect, fallback. |
-| IP/DNS | host cloud, gateway local, relay URL | DNS gagal, target salah, timeout connect. |
-| Transport | HTTP client, TLS client | koneksi putus, TLS handshake, sertifikat. |
-| Aplikasi | REST API, WebSocket, JSON | format payload, status response, command realtime. |
-| Operasional | retry, cache, watchdog, QoS | jaringan tidak stabil tanpa kehilangan data. |
+Dalam sistem greenhouse ini, jaringan dibagi menjadi beberapa lapisan tanggung jawab untuk mempermudah pelacakan error:
 
-## Firmware dan Web Sama-Sama Bergantung pada Kontrak
+| Lapisan | Deskripsi | Contoh Kasus di Proyek | File Terkait |
+| :--- | :--- | :--- | :--- |
+| **Physical / Radio** | Pengiriman bit data melalui gelombang udara atau kabel. | Membaca kekuatan Wi-Fi RSSI atau mengaktifkan modul seluler SIM800. | [MyNetworkManager.h](file:///home/dhimasardinata/Dokumen/ta/gateway/include/MyNetworkManager.h) |
+| **IP / DNS** | Pengalamatan perangkat dan pencarian host tujuan. | Mengubah alamat host API domain menjadi alamat IP dinamis. | [MyNetworkManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/MyNetworkManager.cpp) |
+| **Transport** | Pengiriman data yang aman dan andal melalui protokol internet. | Melakukan jabat tangan (*handshake*) TLS untuk membuat sesi HTTPS. | [ApiClient.Transport.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.Transport.cpp) |
+| **Application** | Format pesan yang dipahami oleh penerima dan pengirim. | Mengirim parameter sensor dalam format JSON ke controller Laravel. | [ApiController.php](file:///home/dhimasardinata/Dokumen/ta/web/ApiController.php) |
+| **Operational** | Kebijakan sistem saat menghadapi ketidakstabilan jaringan. | Menyimpan data ke flash lokal ketika upload gagal dan mencobanya lagi nanti. | [CacheManager.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/storage/CacheManager.cpp) |
 
-Firmware mengirim payload. Backend membaca field. Frontend menampilkan field. Jika nama field berubah, semua lapisan bisa terdampak.
+---
 
-Contoh kontrak:
+## 2. Kontrak Payload JSON
 
-- `gh_id`,
-- `node_id`,
-- `temperature`,
-- `humidity`,
-- `light_intensity` atau `lux`,
-- `rssi`,
-- `recorded_at` atau `timestamp`,
-- `success`,
-- `message`,
-- `errors`.
+Untuk menjaga kelancaran alur data dari perangkat keras ke perangkat lunak, sistem menerapkan kontrak skema data yang ketat.
 
-## Timeout dan Retry
+Struktur data pembacaan sensor fisik didefinisikan pertama kali di tingkat C++ firmware pada [SensorData.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/sensor/SensorData.h):
+```cpp
+struct SensorReading {
+  float value;
+  bool isValid;
+};
+```
 
-Timeout mencegah firmware atau web menunggu selamanya. Retry memberi kesempatan saat jaringan gagal sementara.
+Data ini kemudian dikonversi menjadi payload JSON untuk dikirimkan melalui REST API. Endpoint penerima pada [ApiController.php](file:///home/dhimasardinata/Dokumen/ta/web/ApiController.php) memetakan field-field tersebut secara dinamis ke dalam database melalui fungsi `saveSensorData`:
+- `gh_id` (ID Greenhouse)
+- `node_id` (ID Node Sensor)
+- `temperature` / `temp` (Suhu dalam °C)
+- `humidity` / `hum` (Kelembapan Relatif dalam %)
+- `light_intensity` / `light` / `lux` (Intensitas Cahaya)
+- `rssi` (Kekuatan Sinyal Wi-Fi)
+- `recorded_at` (Waktu perekaman data)
 
-Edge case:
+Jika terjadi inkonsistensi nama field (misalnya firmware mengirim `temp` sementara backend mencari `temperature`), data sensor akan gagal di-parsing dan dibuang.
 
-- timeout terlalu pendek membuat request sehat dianggap gagal,
-- timeout terlalu panjang membuat loop firmware macet,
-- retry tanpa backoff bisa membanjiri server,
-- retry upload perlu idempotency atau status record agar data tidak dobel.
+---
 
-## Halaman Lanjutan
+## 3. Timeout, Retry, dan Backoff
 
+Pada jaringan nirkabel lapangan, kegagalan request adalah hal yang lumrah. Sistem menerapkan tiga strategi utama:
+- **Timeout**: Membatasi berapa lama firmware harus menunggu response. Di [MyNetworkManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/MyNetworkManager.cpp), timeout untuk request seluler GPRS dibuat lebih longgar dibanding Wi-Fi karena latensi koneksi seluler jauh lebih tinggi.
+- **Retry**: Mencoba mengirim kembali data yang gagal. Namun, retry tanpa jeda (*immediate retry*) dapat membanjiri server yang sedang down (*thundering herd problem*).
+- **QoS & Cache**: Jika batas retry habis, data sensor akan dialihkan ke memori RTC/LittleFS lokal untuk dikirimkan secara kolektif saat jaringan pulih kembali.
+
+---
+
+## Modul Pembelajaran Lanjutan
+
+Untuk mempelajari bagaimana konsep ini diimplementasikan di tingkat kode, silakan merujuk pada materi berikut:
 - [Runtime Jaringan Firmware](./firmware-network-runtime.md)
+- [GPRS dan Fallback Gateway](./gateway-gprs-fallback.md)
 - [Laravel API dan Database Query](./web-laravel-api-database.md)
 - [Vue Reactivity dan UI Greenhouse](./web-vue-reactivity-ui.md)
 - [Security, OTA, and Cache](./security-ota-cache.md)

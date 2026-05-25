@@ -4,119 +4,92 @@ title: "Runtime Jaringan Firmware"
 
 # Runtime Jaringan Firmware
 
-Jaringan firmware adalah gabungan Wi-Fi, HTTP, HTTPS/TLS, WebSocket, captive portal, NTP, dan fallback cloud-edge. Sistem greenhouse tidak bisa menganggap koneksi selalu stabil, sehingga firmware perlu timeout, retry, cache, dan mode fallback.
+Jaringan pada sistem IoT greenhouse dirancang dengan prinsip **konektivitas tidak andal**. Karena node sensor dan gateway diletakkan di lapangan, firmware harus mampu menangani kondisi kegagalan jaringan (Wi-Fi putus, DNS error, TLS overload) tanpa menyebabkan sistem hang atau mengganggu kontrol aktuator.
 
-## Jalur Jaringan Utama
+Untuk mencapainya, firmware menggunakan arsitektur non-blocking, mesin status (state machine) untuk upload, retry policy dengan backoff, serta fallback otomatis antara cloud dan edge (lokal).
 
-| Jalur | Dipakai Oleh | Fungsi |
-|---|---|---|
-| Wi-Fi STA | Node dan gateway | Terhubung ke router atau jaringan greenhouse. |
-| Access Point / portal | Node dan gateway | Konfigurasi lokal saat Wi-Fi belum siap. |
-| HTTP/REST | Node, gateway, backend | Upload sensor, ambil threshold, jadwal, status, OTA metadata. |
-| HTTPS/TLS | Node dan gateway | Komunikasi aman ke endpoint cloud/relay. |
-| WebSocket | Browser lokal dan firmware | Terminal, status realtime, command lokal. |
-| NTP / time API | Node dan gateway | Sinkronisasi waktu untuk timestamp, schedule, dan replay window. |
-| Relay proxy | Node/gateway ke cloud | Fallback saat direct origin bermasalah. |
-| GPRS/SIM800 | Gateway | Jalur cadangan atau jalur tambahan pada gateway. |
+---
 
-## Wi-Fi Credential dan Scan
+## Arsitektur Jaringan dan Protokol
 
-Node dan gateway sama-sama menyimpan credential Wi-Fi. Node memakai `WifiCredentialStore` dengan built-in GH network dan user-saved network. Gateway juga punya store credential dan cache hasil scan.
+| Protokol | Peran dalam Proyek | Implementasi Kode |
+| :--- | :--- | :--- |
+| **Wi-Fi STA** | Menghubungkan node/gateway ke router greenhouse. | [WifiManager.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/net/WifiManager.h) |
+| **Wi-Fi AP & Portal** | Captive portal untuk konfigurasi SSID dan password saat jaringan gagal terhubung. | [PortalServer.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/web/PortalServer.h) |
+| **HTTP / HTTPS Client** | Mengirim data sensor ke API server dan mengunduh firmware update. | [ApiClient.Transport.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.Transport.cpp) |
+| **WebSocket** | Komunikasi dua arah untuk terminal diagnostik jarak jauh. | [DiagnosticsTerminal.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/terminal/DiagnosticsTerminal.h) |
+| **NTP Client** | Sinkronisasi waktu untuk validasi sertifikat SSL dan logging presisi. | [NtpClient.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/net/NtpClient.h) |
 
-Konsep penting:
+---
 
-- SSID maksimal sekitar 32 byte,
-- password maksimal sekitar 64 byte,
-- RSSI dipakai untuk memilih jaringan terbaik,
-- hidden network perlu dicoba walau tidak muncul di scan,
-- scan Wi-Fi bisa mahal untuk heap dan waktu.
+## Manajemen Kredensial Wi-Fi & Scan Jaringan
 
-Edge case:
+Kredensial Wi-Fi tersimpan pada jalur yang dikelola [WifiCredentialStore.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/net/WifiCredentialStore.h) dan implementasinya di `WifiCredentialStore.cpp`. Source yang terlihat menggunakan file binary di filesystem, bukan EEPROM mentah.
 
-- SSID sama bisa muncul dari beberapa access point,
-- hasil scan bisa stale,
-- RSSI rendah tidak selalu berarti koneksi gagal, tetapi risiko timeout naik,
-- scan saat heap rendah bisa membuat service web lokal tidak responsif.
+Pada gateway ([MyNetworkManager.h](file:///home/dhimasardinata/Dokumen/ta/gateway/include/MyNetworkManager.h)), proses pemindaian (Wi-Fi scan) dilakukan secara asinkron. Hal ini penting karena fungsi pemindaian bawaan SDK yang bersifat sinkron dapat memakan waktu hingga beberapa detik dan memblokir thread utama, yang berisiko memicu *Software Watchdog Reset* (WDT).
 
-## HTTP dan HTTPS
+---
 
-HTTP dipakai untuk request biasa. HTTPS menambah TLS handshake, validasi sertifikat, buffer TLS, dan trust anchor.
+## Pembatasan TLS & RAM (Heap Guard)
 
-Di node, TLS memakai BearSSL dan punya guard heap. Firmware mengecek free heap dan max block karena TLS butuh blok memori kontigu. Jika blok kontigu kecil, request bisa gagal walau total free heap terlihat cukup.
+Komunikasi HTTPS menggunakan BearSSL membutuhkan memori RAM yang cukup besar untuk enkripsi. Pada ESP8266 (dengan RAM terbatas), inisialisasi TLS tanpa pengawasan bisa memicu *Out of Memory* (OOM).
 
-Edge case:
+Untuk mengatasinya, firmware mengimplementasikan **Heap Guard** pada [ApiClient.Transport.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.Transport.cpp):
+1. Sebelum membuat koneksi HTTPS, firmware memeriksa sisa memori dinamis bebas (`ESP.getFreeHeap()`).
+2. Jika memori berada di bawah batas aman, request ditolak secara lokal dengan kode error khusus `HTTPC_ERROR_TOO_LESS_RAM` daripada membiarkan mikrokontroler crash di tengah handshake TLS.
 
-- DNS bisa gagal sebelum koneksi HTTP dibuat,
-- TLS trust anchor bisa tidak cocok dengan hostname,
-- waktu perangkat yang salah bisa membuat validasi sertifikat gagal,
-- redirect atau response HTML error bisa terbaca seperti response API jika tidak dicek,
-- timeout harus dibedakan antara connect, write, header, dan body.
+---
 
-## WebSocket dan Terminal
+## Komunikasi Realtime Lewat WebSocket
 
-WebSocket dipakai agar browser dan firmware bisa saling kirim pesan tanpa request baru terus-menerus.
+Untuk keperluan kontrol jarak jauh dan pemantauan interaktif, proyek ini menggunakan koneksi WebSocket:
+- Pada gateway ([WebSocketManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/WebSocketManager.cpp)), koneksi WebSocket memancarkan status relay dan menerima perintah kontrol langsung dari antarmuka web.
+- Pada node, [DiagnosticsTerminal.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/terminal/DiagnosticsTerminal.h) memanfaatkan WebSocket untuk memancarkan keluaran serial konsol (seperti `WebSerial`) langsung ke browser pengguna, lengkap dengan pembatasan ukuran payload agar buffer memori tidak membludak.
 
-Di project ini WebSocket berkaitan dengan:
+---
 
-- terminal node,
-- WebSerial gateway,
-- status dashboard lokal,
-- command terenkripsi,
-- session timeout,
-- replay protection.
+## Kebijakan Fallback Cloud-Edge (Auto mode)
 
-Edge case:
+Ketika koneksi ke API Cloud utama terganggu, sistem dapat beralih menggunakan server gateway lokal (Edge) atau server Relay.
 
-- client disconnect saat command berjalan,
-- output terminal terlalu panjang,
-- banyak pesan bisa memenuhi queue,
-- payload WebSocket perlu batas ukuran,
-- command sensitif perlu autentikasi.
+Logika pemilihan rute ini diatur dalam `shouldUseRelayForCloudUpload()` di [ApiClient.Transport.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.Transport.cpp):
+```cpp
+bool ApiClient::shouldUseRelayForCloudUpload() const {
+  switch (m_runtime.route.uplinkMode) {
+    case UplinkMode::DIRECT:
+      return false;
+    case UplinkMode::RELAY:
+      return true;
+    case UplinkMode::AUTO:
+    default:
+      if (m_runtime.route.forceRelayNextCloudAttempt) {
+        return true;
+      }
+      if (m_runtime.route.relayPinnedUntil == 0) {
+        return false;
+      }
+      return static_cast<int32_t>(millis() - m_runtime.route.relayPinnedUntil) < 0;
+  }
+}
+```
 
-## Cloud, Edge, Auto, dan Relay
+Kebijakan ini diatur lebih lanjut oleh [ApiClient.UploadRuntimePolicy.cpp](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.UploadRuntimePolicy.cpp) yang menentukan kapan koneksi harus diturunkan (*downgraded*) ke server lokal dan kapan harus dicoba kembali ke Cloud utama.
 
-Mode cloud mengutamakan server. Mode edge mengutamakan gateway lokal. Mode auto memilih jalur sesuai kondisi.
+---
 
-Relay dipakai sebagai jalur alternatif saat direct origin API bermasalah. Ini membuat firmware perlu menyimpan state:
+## Loop Runtime Non-Blocking
 
-- target upload saat ini,
-- jumlah gagal upload,
-- kapan boleh retry cloud,
-- apakah relay sedang dipin,
-- apakah record saat ini sudah terkirim ke gateway.
+Untuk menjamin layanan latar belakang (seperti *network stack*, *OTA updates*, dan *watchdog timer*) tetap berjalan, fungsi `loop()` utama di [main.cpp](file:///home/dhimasardinata/Dokumen/ta/node/src/main.cpp) didesain tanpa menggunakan fungsi `delay()` yang memblokir jalannya proses:
 
-Edge case:
+```cpp
+void loop() {
+  // Biarkan proses internal SDK berjalan
+  yield();
 
-- data bisa terkirim ganda jika status record tidak jelas,
-- fallback terlalu cepat bisa membanjiri gateway,
-- fallback terlalu lambat membuat data tertahan lama,
-- mode auto perlu log agar operator tahu jalur yang sedang dipakai.
-
-## Runtime Loop
-
-Firmware tidak memakai model blocking panjang. Loop harus sering kembali agar Wi-Fi stack, OTA, WebSocket, sensor, dan watchdog tetap hidup.
-
-Konsep yang muncul:
-
-- timer interval,
-- deferred action,
-- yield saat heap/network butuh waktu,
-- watchdog,
-- state machine upload,
-- throttle log.
-
-## File yang Relevan
-
-- [node/lib/NodeCore/net/WifiManager.h](../14-complete-file-walkthrough/node/lib/NodeCore/net/WifiManager.h.md)
-- [node/lib/NodeCore/net/WifiCredentialStore.h](../14-complete-file-walkthrough/node/lib/NodeCore/net/WifiCredentialStore.h.md)
-- [node/lib/NodeCore/api/ApiClient.Transport.cpp](../14-complete-file-walkthrough/node/lib/NodeCore/api/ApiClient.Transport.cpp.md)
-- [node/lib/NodeCore/api/ApiClient.UploadRuntimePolicy.cpp](../14-complete-file-walkthrough/node/lib/NodeCore/api/ApiClient.UploadRuntimePolicy.cpp.md)
-- [node/lib/NodeCore/web/AppServer.h](../14-complete-file-walkthrough/node/lib/NodeCore/web/AppServer.h.md)
-- [node/lib/NodeCore/terminal/DiagnosticsTerminal.h](../14-complete-file-walkthrough/node/lib/NodeCore/terminal/DiagnosticsTerminal.h.md)
-- [gateway/include/MyNetworkManager.h](../14-complete-file-walkthrough/gateway/include/MyNetworkManager.h.md)
-- [gateway/src/WebSocketManager.cpp](../14-complete-file-walkthrough/gateway/src/WebSocketManager.cpp.md)
-
-## Halaman Lanjutan
-
-- [Web UI Tertanam di Firmware](./firmware-embedded-web-ui.md)
-- [GPRS dan Fallback Gateway](./gateway-gprs-fallback.md)
+  // Jalankan loop manajer sistem secara berkala
+  wifiManager.loop();
+  apiClient.loop();
+  sensorManager.loop();
+}
+```
+Setiap modul menggunakan pemeriksaan berbasis `millis()` untuk mengukur interval waktu eksekusinya sendiri, menjaga kinerja mikrokontroler tetap responsif.

@@ -1,207 +1,134 @@
 ---
 title: "Modern C++ 11-20 di Firmware"
+description: "Penerapan fitur modern C++11 hingga C++20 untuk keamanan memori, optimasi compile-time, dan efisiensi resource pada ESP8266/ESP32."
 ---
 
 # Modern C++ 11-20 di Firmware
 
-Firmware node memakai `-std=gnu++20`. Gateway memakai gaya C++ modern juga, walau standard C++ belum ditulis eksplisit di `gateway/platformio.ini`.
+Firmware node mengaktifkan C++20, sedangkan gateway memakai fitur C++ modern yang didukung toolchain Arduino ESP32. Fitur seperti `auto`, `constexpr`, `consteval`, `static_assert`, `enum class`, dan `std::unique_ptr` membantu membuat batas memori dan kontrak tipe lebih jelas.
 
-Modern C++ di firmware bukan sekadar membuat kode terlihat baru. Tujuannya adalah membuat batas memori, tipe data, dan error lebih jelas sebelum perangkat dipasang di greenhouse.
+Halaman ini membahas fitur C++11 hingga C++20 yang terlihat pada source. Manfaatnya bukan otomatis membuat semua kode lebih cepat, tetapi membuat beberapa keputusan bisa dipindah ke compile time dan mengurangi bug runtime.
 
-## Ringkasan Versi
+---
 
-| Versi | Fitur yang Relevan | Contoh Peran di Firmware |
-|---|---|---|
-| C++11 | `auto`, lambda, `constexpr`, `enum class`, `static_assert`, move semantics, `std::array`, `std::unique_ptr` | Membuat state dan buffer lebih aman tanpa banyak macro. |
-| C++14 | Generic lambda, `constexpr` lebih longgar | Helper kecil bisa lebih fleksibel. |
-| C++17 | `if constexpr`, inline variable, structured binding | Template bisa memilih jalur saat compile time. |
-| C++20 | `consteval`, `std::span`, NTTP class type, template lambda lebih kuat | Compile-time JSON dan view buffer tanpa copy. |
+## 1. Dedupe Tipe dengan `auto`
 
-## `auto`
+Kata kunci `auto` meminta kompiler untuk menyimpulkan tipe data variabel berdasarkan nilai inisialisasinya pada saat kompilasi. Penggunaan `auto` yang tepat dapat meningkatkan keterbacaan kode secara drastis.
 
-`auto` membuat compiler menebak tipe dari nilai di kanan. Ini berguna saat tipe panjang atau mudah berubah.
+### Aturan & Praktik Terbaik di Project Ini
+*   **Gunakan Referensi (`auto&` / `const auto&`) untuk Menghindari Salinan Berat:**
+    Jika objek berukuran besar (seperti kelas `String` Arduino atau struktur data kustom), menggunakan `auto` biasa akan menduplikasi objek tersebut ke stack baru. Gunakan `const auto&` untuk membaca tanpa menyalin.
 
-Contoh pola yang terlihat di source:
+    Contoh nyata dari [ConfigManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/ConfigManager.cpp):
+    ```cpp
+    for (auto& slot : g_adminAuthRateSlots) {
+        // 'slot' adalah referensi ke elemen asli di array, bukan salinan.
+    }
+    ```
+*   **Waspada Dangling References dalam Lambda:**
+    Jika variabel lokal di-capture berdasarkan referensi (`[&]`) di dalam lambda async, pastikan lambda tersebut tidak dieksekusi setelah variabel lokal tersebut dihancurkan dari stack.
+*   **Hindari Alokasi Heap Tersembunyi:**
+    Tipe bawaan Arduino seperti `String` menggunakan alokasi heap dinamis di balik layar. Selalu gunakan `String` seminimal mungkin dan lebih pilih `const char*` atau `std::string_view` jika memungkinkan.
 
+---
+
+## 2. Pemrograman Evaluasi Compile-Time (`constexpr` & `consteval`)
+
+Memindahkan kalkulasi dari runtime (saat alat berjalan) ke compile-time (saat kompilasi di laptop) adalah kunci efisiensi memori pada mikrokontroler dengan RAM kecil.
+
+### constexpr
+Mendeklarasikan bahwa nilai suatu variabel atau kembalian fungsi dapat dihitung pada saat kompilasi.
+
+Contoh nyata dari [constants.h](file:///home/dhimasardinata/Dokumen/ta/node/include/config/constants.h):
 ```cpp
-auto& health = SystemHealth::HealthMonitor::instance();
-const auto& cfg = m_deps.configManager.getConfig();
-auto saved = savedSpan();
+// Batas memori heap aman sebelum peringatan dikeluarkan
+constexpr uint32_t HEAP_WARNING_THRESHOLD = 8192;
+constexpr uint32_t HEAP_CRITICAL_THRESHOLD = 4096;
 ```
+Dengan menggunakan `constexpr`, nilai tersebut bisa dipakai compiler sebagai konstanta saat build. Lokasi storage final tetap bergantung pada cara nilai dipakai dan hasil optimasi compiler.
 
-Makna teknisnya berbeda:
+### consteval (C++20)
+Fungsi `consteval` (disebut juga *immediate function*) **wajib** dievaluasi pada saat kompilasi. Jika kompiler tidak bisa menyelesaikannya secara statis, ia akan menghasilkan error.
 
-| Bentuk | Efek |
-|---|---|
-| `auto value = expr;` | Membuat copy jika `expr` bukan reference yang dipertahankan. |
-| `auto& value = expr;` | Reference mutable, tidak copy. |
-| `const auto& value = expr;` | Reference read-only, aman untuk object besar. |
-| `auto* p = expr;` | Pointer tetap terlihat sebagai pointer. |
-
-Edge case penting:
-
-- `auto` biasa menghapus top-level `const` dan reference. Jika tidak ingin copy, pakai `auto&` atau `const auto&`.
-- Pada range loop, `for (auto x : items)` menyalin tiap item. Untuk struct besar, gunakan `for (const auto& x : items)`.
-- `auto list = {1, 2, 3};` bisa menjadi `std::initializer_list<int>`, bukan array biasa.
-- `auto` pada lambda capture tidak menyelesaikan masalah lifetime. Jika lambda menyimpan reference ke object lokal yang sudah hilang, hasilnya tetap berbahaya.
-- `auto` dapat menyembunyikan alokasi. Misalnya fungsi mengembalikan `String` atau `std::vector`, variabel `auto` tetap membawa biaya heap dari tipe tersebut.
-
-## Lambda
-
-Lambda adalah fungsi kecil di tempat. Firmware memakai lambda untuk helper lokal, callback web, dan operasi kecil yang dekat dengan konteksnya.
-
-Contoh pola:
-
+Contoh nyata pada generator JSON bebas alokasi dinamis [CompileTimeJSON.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/support/CompileTimeJSON.h):
 ```cpp
-auto append = /* captures local state by reference */ [](const char* text, size_t len) {
-  // pakai state lokal di sekitar fungsi
+template <size_t N>
+struct FixedString {
+    std::array<char, N> data{};
+    // Konstruktor consteval menjamin parser dijalankan saat kompilasi
+    consteval FixedString(const char (&str)[N]) {
+        std::copy_n(str, N, data.begin());
+    }
 };
 ```
+Ini memastikan format payload JSON dihitung tanpa memerlukan alokasi memori dinamis (`std::string` atau buffer runtime) ketika alat dijalankan.
 
-Edge case lambda di firmware:
+---
 
-- Capture `[&]` mengambil semua yang dipakai sebagai reference. Aman jika lambda langsung dipakai, rawan jika lambda disimpan untuk callback yang hidup lebih lama.
-- Capture `[=]` membuat copy. Copy object besar bisa membebani stack atau heap.
-- Lambda yang masuk `std::function` bisa memicu alokasi heap jika capture terlalu besar atau implementasi tidak cukup memakai small buffer.
-- Callback async perlu hati-hati dengan pointer ke object yang bisa dihancurkan lebih dulu.
+## 3. Validasi Kompilasi Statis dengan `static_assert`
 
-## `constexpr`
+`static_assert` digunakan untuk melakukan pengecekan logika/kondisi tipe data pada saat kompilasi. Jika kondisi bernilai `false`, kompilasi akan gagal dengan pesan yang ramah. Ini mencegah bug logika lolos ke firmware biner.
 
-`constexpr` berarti nilai atau fungsi bisa dievaluasi saat compile time jika inputnya juga compile-time.
-
-Di project ini, `constexpr` dipakai untuk:
-
-- port DNS,
-- timeout Wi-Fi,
-- limit WebSocket,
-- batas heap,
-- ukuran buffer TLS,
-- kapasitas queue,
-- hash seed,
-- ukuran payload.
-
-Contoh:
-
-```cpp
-constexpr uint32_t HEAP_WARNING_THRESHOLD = 8192;
-constexpr uint16_t TLS_RX_BUF_SIZE = 2048;
-```
-
-Edge case:
-
-- `constexpr` tidak selalu berarti pasti compile-time. Fungsi `constexpr` bisa berjalan runtime jika dipanggil dengan input runtime.
-- `constexpr` object global tetap bisa memakai storage. Untuk array besar, lokasi memory tetap penting.
-- Operasi `constexpr` yang kompleks bisa memperbesar waktu compile dan pesan error.
-- Pada firmware lama, library belum tentu siap dipakai dalam konteks `constexpr`.
-
-## `consteval`
-
-`consteval` adalah C++20. Fungsi `consteval` wajib selesai saat compile time. Jika dipanggil dengan data runtime, compile gagal.
-
-Project node memakai `consteval` di `CompileTimeJSON.h` untuk membangun string JSON statis saat build. Tujuannya mengurangi:
-
-- runtime string concatenation,
-- alokasi heap,
-- kerja `snprintf` untuk bagian JSON yang tetap.
-
-Contoh pola:
-
-```cpp
-consteval auto placeholder_int() {
-  return FixedString("%d");
-}
-```
-
-Edge case:
-
-- `consteval` hanya bisa dipakai di build C++20 atau lebih baru.
-- Tidak bisa menerima data sensor, SSID hasil scan, response HTTP, atau nilai runtime lain.
-- Error compile bisa panjang karena template dan immediate function saling menumpuk.
-- Hasil compile-time string tetap masuk binary. Jika template JSON terlalu banyak, flash bisa bertambah.
-
-## `static_assert`
-
-`static_assert` menghentikan build jika syarat compile-time tidak terpenuhi.
-
-Project ini memakainya untuk:
-
-- memastikan timeout masuk akal,
-- memastikan threshold heap berurutan,
-- memastikan ukuran `WifiCredential` tidak berubah tanpa migrasi storage,
-- memastikan kapasitas command tidak terlalu besar.
-
-Contoh konsep:
-
+Contoh nyata dari [WifiCredentialStore.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/net/WifiCredentialStore.h):
 ```cpp
 static_assert(sizeof(WifiCredential) == WIFI_CRED_EXPECTED_SIZE,
               "WifiCredential size changed; storage format requires migration.");
 ```
+Jika ada pengembang lain yang tidak sengaja mengubah ukuran struct `WifiCredential` (misal memperlebar panjang buffer SSID), sistem build akan langsung menolak proses kompilasi sebelum sempat di-upload ke hardware.
 
-Ini penting karena firmware menyimpan data ke flash/NVS/filesystem. Jika layout struct berubah tetapi data lama masih dibaca dengan layout baru, konfigurasi bisa rusak.
+---
 
-## `if constexpr`
+## 4. `if constexpr` untuk Conditional Compile-Time
 
-`if constexpr` memilih cabang saat compile time. Cabang yang tidak dipilih tidak diinstansiasi untuk tipe template tersebut.
+Dalam fungsi berbasis templat, `if constexpr` memungkinkan kompiler untuk mengevaluasi percabangan logika secara statis dan **hanya mengompilasi cabang yang aktif**. Cabang yang bernilai `false` akan diabaikan sepenuhnya dan tidak akan dimasukkan ke dalam biner akhir.
 
-Pola ini terlihat di compile-time JSON untuk kasus variadic:
+Pola ini terlihat di generator JSON [CompileTimeJSON.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/support/CompileTimeJSON.h), misalnya untuk memilih bentuk object kosong atau object berisi pasangan key-value pada saat compile time.
 
+---
+
+## 5. Tipe Aman dengan `enum class`
+
+`enum` tradisional memiliki kelemahan karena mengekspos nilainya ke lingkup global (*implicit conversion* ke integer). `enum class` (scoped enum) memecahkan masalah ini dengan mewajibkan resolusi nama lengkap dan melarang konversi tipe implisit tanpa cast eksplisit.
+
+Contoh nyata dari [ApiClient.State.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.State.h):
 ```cpp
-if constexpr (sizeof...(strings) == 0) {
-  return FixedString("");
-}
+enum class UploadRecordSource : uint8_t {
+    NONE,
+    RTC,
+    LITTLEFS
+};
 ```
+*   `UploadRecordSource::NONE` tidak akan bentrok dengan konstanta `NONE` di pustaka lain.
+*   Pemberian tipe `: uint8_t` memaksa kompiler menggunakan memori hanya **1 byte** untuk menyimpan status ini, alih-alih tipe default `int` (4 byte).
 
-Edge case:
+---
 
-- Kondisi harus compile-time.
-- Cabang yang tidak dipilih tetap perlu valid secara sintaks umum. Untuk kode bergantung tipe, kesalahan bisa tetap muncul jika tidak ditulis sebagai dependent expression.
-- Terlalu banyak cabang compile-time bisa membuat template sulit dibaca.
+## 6. Smart Pointer (`std::unique_ptr`) dan RAII
 
-## `enum class`
+RAII (*Resource Acquisition Is Initialization*) menjamin bahwa resource (memori heap, file handle, socket) dikelola secara otomatis mengikuti siklus hidup objek (*lifetime*).
 
-`enum class` membuat enum lebih aman daripada enum C biasa. Nilainya tidak otomatis bercampur dengan integer.
+Di firmware *Node*, alokasi dinamis dipantau ketat menggunakan `std::unique_ptr` untuk mencegah kebocoran memori (*memory leak*).
 
-Contoh di firmware:
+Contoh nyata dari [ApiClient.State.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/api/ApiClient.State.h):
+```cpp
+struct TransportRuntime {
+    // ...
+    std::unique_ptr<HTTPClient> httpClient;
+    // ...
+};
+```
+Ketika objek `TransportRuntime` dihancurkan atau keluar dari *scope*, objek `HTTPClient` di dalamnya yang dialokasikan di heap akan otomatis di-`delete` tanpa memerlukan pemanggilan manual.
 
-- `UploadRecordSource`,
-- `UploadRecordLoad`,
-- `EmergencyQueueReason`,
-- `UploadState`,
-- `HttpState`,
-- `QosTaskType`.
+> [!WARNING]
+> Jangan gunakan `new` mentah jika memungkinkan. Jika terpaksa menggunakan `new` karena keterbatasan alokasi statis, selalu gunakan varian non-throwing `new (std::nothrow)` dan periksa apakah pointer yang dikembalikan bernilai `nullptr`.
 
-Edge case:
+---
 
-- Untuk disimpan ke flash atau dikirim sebagai byte, underlying type perlu jelas, misalnya `enum class Mode : uint8_t`.
-- Log dan JSON tetap perlu mapping manual dari enum ke teks.
-- Jangan mengandalkan nilai enum default jika format persistence perlu kompatibel jangka panjang.
+## Fitur C++ Modern yang Dihindari di Firmware
 
-## Move Semantics dan RAII
+Untuk menjaga kestabilan sistem tertanam dengan RAM sempit (< 80 KB pada ESP8266), beberapa fitur C++ dilarang digunakan dalam proyek ini:
 
-RAII berarti resource dibersihkan oleh destructor saat object keluar scope. `std::unique_ptr` adalah contoh utama.
-
-Di firmware, RAII membantu agar buffer heap, HTTP client, trust anchor TLS, atau queue text tidak bocor saat return lebih awal.
-
-Edge case:
-
-- RAII tidak menghapus risiko OOM. `new (std::nothrow)` tetap bisa gagal dan perlu dicek.
-- `std::unique_ptr<T[]>` menunjukkan array heap, bukan stack.
-- Move membuat pemilik lama kosong. Setelah `std::move`, object lama hanya boleh dipakai dalam keadaan valid tetapi tidak diasumsikan masih punya data.
-
-## Fitur yang Perlu Dihindari atau Dipakai Terbatas
-
-Project node mengaktifkan `-fno-rtti` dan `-fno-exceptions`. Artinya:
-
-- `dynamic_cast` dan `typeid` bukan pola utama,
-- exception C++ tidak menjadi jalur error,
-- error perlu dikembalikan lewat status, enum, boolean, atau log.
-
-Untuk firmware kecil, fitur seperti `std::thread`, iostream berat, allocation-heavy container, dan exception biasanya tidak cocok kecuali benar-benar diukur.
-
-## File yang Relevan
-
-- [node/platformio.ini](../14-complete-file-walkthrough/config/node/platformio.ini.md)
-- [node/include/config/constants.h](../14-complete-file-walkthrough/node/include/config/constants.h.md)
-- [node/lib/NodeCore/support/CompileTimeJSON.h](../14-complete-file-walkthrough/node/lib/NodeCore/support/CompileTimeJSON.h.md)
-- [node/lib/NodeCore/net/WifiCredentialStore.h](../14-complete-file-walkthrough/node/lib/NodeCore/net/WifiCredentialStore.h.md)
-- [node/lib/NodeCore/api/ApiClient.State.h](../14-complete-file-walkthrough/node/lib/NodeCore/api/ApiClient.State.h.md)
+1.  **Exceptions (`try`, `catch`, `throw`):** Dilarang lewat flag `-fno-exceptions`. Menambahkan ukuran biner berkali-kali lipat dan membahayakan siklus runtime akibat ketidakpastian memori stack.
+2.  **RTTI (`dynamic_cast`):** Dilarang lewat flag `-fno-rtti`. Menambahkan overhead runtime untuk pelacakan tipe objek.
+3.  **Library `std::thread` & `std::mutex` bawaan C++:** Digantikan oleh mekanisme scheduler non-blocking berbasis timer [IntervalTimer.h](file:///home/dhimasardinata/Dokumen/ta/node/lib/NodeCore/system/IntervalTimer.h) atau task manager FreeRTOS pada ESP32 untuk menghindari *deadlock* dan alokasi stack thread yang boros.
+4.  **`std::cout` & `std::cin` (iostreams):** Digantikan oleh `Serial.print` bawaan Arduino karena pustaka iostreams C++ sangat berat untuk mikroprosesor 32-bit sederhana.

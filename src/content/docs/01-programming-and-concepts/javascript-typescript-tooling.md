@@ -4,59 +4,61 @@ title: "JavaScript and TypeScript Tooling"
 
 # JavaScript and TypeScript Tooling
 
-JavaScript dan TypeScript muncul pada script pengembangan, test, asset web firmware, dan platform dokumentasi Next.js. Konsep yang sering muncul adalah `import`, `export`, `const`, `async`, JSON, package, script npm, dan fungsi helper.
+Meskipun komponen utama *firmware* ditulis menggunakan C++, bahasa pemrograman **JavaScript (JS)** dan **TypeScript (TS)** memegang peran yang sangat penting di hampir semua lapisan proyek ini: mulai dari antarmuka pengguna web dashboard, halaman kontrol lokal di dalam flash mikrokontroler, script otomatisasi pengembangan, hingga mesin pencari pada situs dokumentasi.
 
-Dalam proyek TA ini, JavaScript tidak hanya untuk tampilan. Ia juga dipakai untuk tooling, halaman firmware lokal, dan pengujian perilaku cache atau reproduksi bug.
+---
 
-## Di Mana Dipakai
+## 1. Di Mana JS dan TS Digunakan?
 
-| Area | Bentuk Kode | Peran |
-|---|---|---|
-| Frontend Vue | `.vue`, `axios`, `ref`, `computed`, `watch` | Dashboard, heatmap, kontrol threshold, kontrol jadwal. |
-| Asset firmware node | HTML/CSS/JS di `node/data/` | Dashboard lokal, portal Wi-Fi, terminal, halaman update. |
-| Asset firmware gateway | HTML/JS di `PROGMEM` | Portal konfigurasi gateway dan terminal WebSerial. |
-| Tooling node | script JavaScript di `node/tools/` dan `node/test/` | Reproduksi bug, watcher, fault injection. |
-| Docs site | TypeScript/TSX di `docs-site/` | Routing docs, search, rendering Markdown, API reference. |
+Dalam arsitektur proyek ini, JS dan TS tersebar di beberapa bagian penting:
 
-## `async` dan Request
+| Lingkungan | Lokasi File | Peran & Deskripsi | File Terkait |
+| :--- | :--- | :--- | :--- |
+| **Dashboard Vue** | `web/` | Membangun UI pemantauan greenhouse, grafik riwayat, dan panel kontrol threshold. | [Controlling.vue](file:///home/dhimasardinata/Dokumen/ta/web/Controlling.vue), [Heatmap.vue](file:///home/dhimasardinata/Dokumen/ta/web/Heatmap.vue) |
+| **Asset Flash Node** | `node/data/` | Aset web statis yang di-flash langsung ke LittleFS ESP8266 untuk captive portal lokal dan console log terminal. | [terminal.js](file:///home/dhimasardinata/Dokumen/ta/node/data/terminal.js), [crypto.js](file:///home/dhimasardinata/Dokumen/ta/node/data/crypto.js) |
+| **Aset Gateway** | `gateway/` | WebSerial terminal dan modul kriptografi lokal yang dikonversi menjadi header C++ `PROGMEM`. | [PortalAssets.h](file:///home/dhimasardinata/Dokumen/ta/gateway/include/PortalAssets.h) |
+| **Watcher Tools** | `node/tools/` | Script Node.js untuk memantau perubahan repositori dan menyinkronkan data secara otomatis selama proses pengembangan. | `node/tools/watch/repo-watchers.js` |
+| **Docs Site** | `docs-site/` | Next.js App Router dengan TypeScript penuh untuk merender halaman MDX dan menangani pencarian dengan Orama. | `docs-site/lib/docs.ts` |
 
-Kode web memakai operasi async untuk request API. Contohnya `axios.get(...)` di Vue dan `fetch(...)` di search docs.
+---
 
-Hal yang perlu diperhatikan:
+## 2. Operasi Asinkron (`async`/`await`)
 
-- request bisa gagal,
-- response bisa tidak sesuai bentuk yang diharapkan,
-- request lama bisa selesai setelah state UI berubah,
-- loading state perlu dikembalikan walau terjadi error,
-- request pencarian perlu debounce agar tidak membanjiri endpoint.
+Interaksi web dengan API backend (Laravel) bersifat non-blocking menggunakan operasi asinkron:
+- Di [Controlling.vue](file:///home/dhimasardinata/Dokumen/ta/web/Controlling.vue), Axios digunakan untuk menyimpan konfigurasi threshold baru secara asinkron tanpa memuat ulang seluruh halaman web (*reload*).
+- Di [terminal.js](file:///home/dhimasardinata/Dokumen/ta/node/data/terminal.js), koneksi WebSocket dibuka dan dikelola secara asinkron untuk menyajikan log stream secara realtime dari mikrokontroler ke layar pengguna.
 
-## JSON
-
-JSON menjadi format tengah antara firmware, backend, frontend, dan docs tooling.
-
-Risiko JSON:
-
-- field bisa hilang,
-- angka bisa datang sebagai string,
-- timestamp bisa beda format,
-- data nested perlu dicek sebelum dibaca,
-- payload terlalu besar bisa membebani firmware atau browser.
-
-## `const`, Object, dan Copy
-
-`const` di JavaScript mencegah variabel di-reassign, tetapi isi object atau array masih bisa berubah.
-
-```js
-const data = [];
-data.push(1); // masih bisa
+### Contoh Pola Pemanggilan API Asinkron:
+```javascript
+async function fetchDocsSearch(query) {
+  try {
+    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) throw new Error("Gagal mengambil data");
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Pencarian bermasalah:", error);
+    return [];
+  }
+}
 ```
 
-Di Vue, state reactive biasanya disimpan dalam `ref` atau `computed`, sehingga perubahan harus mengikuti pola reactivity, bukan hanya copy object sembarangan.
+---
 
-## File yang Relevan
+## 3. Bahaya dan Penanganan Format JSON
 
-- [Controlling.vue](../14-complete-file-walkthrough/web/Controlling.vue.md)
-- [Heatmap.vue](../14-complete-file-walkthrough/web/Heatmap.vue.md)
-- [node/data/terminal.js](../14-complete-file-walkthrough/node/data/terminal.js.md)
-- [node/data/crypto.js](../14-complete-file-walkthrough/node/data/crypto.js.md)
-- [repo-watchers.js](../14-complete-file-walkthrough/scripts/node/tools/watch/repo-watchers.js.md)
+JSON (*JavaScript Object Notation*) bertindak sebagai format pertukaran data utama antara sensor node, gateway, server backend, dan antarmuka web. Namun, terdapat beberapa risiko runtime yang harus ditangani secara defensif:
+
+- **Tipe Data Tidak Konsisten**: Nilai sensor bisa sampai ke UI sebagai angka atau string, tergantung sumber data dan serialisasi JSON. [Heatmap.vue](file:///home/dhimasardinata/Dokumen/ta/web/Heatmap.vue) memakai `parseFloat(...)` pada beberapa jalur agar perhitungan warna dan posisi tetap numerik.
+- **Properti Kosong (Undefined)**: Saat membandingkan objek konfigurasi atau data sensor yang dalam (*deeply nested*), pastikan menggunakan operator *optional chaining* (seperti `response.data?.success`) untuk menghindari error fatal yang dapat menghentikan eksekusi script browser.
+
+---
+
+## 4. Struktur Data `const` dan Imutabilitas
+
+Penggunaan kata kunci `const` di JavaScript hanya mengunci referensi variabel, bukan nilainya.
+```javascript
+const config = { threshold: 30 };
+config.threshold = 35; // Perubahan ini valid dan diperbolehkan
+```
+Untuk mengelola state yang aman dan reaktif di Vue, pengembang memanfaatkan *Reactivity API* (seperti `ref()` dan `computed()`) sehingga setiap perubahan data pada objek `const` secara otomatis memperbarui tampilan DOM browser secara efisien.

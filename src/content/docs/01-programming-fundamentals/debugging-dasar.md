@@ -4,86 +4,90 @@ title: "Debugging Dasar"
 
 # Debugging Dasar
 
-Debugging adalah proses mencari penyebab masalah. Debugging bukan menebak. Debugging dilakukan dengan membaca gejala, mencari bukti, lalu menguji kemungkinan penyebab.
+Halo, rekan developer! Ketika membangun sistem terdistribusi (IoT, backend, frontend, dan mobile), masalah atau *bug* pasti akan muncul.
 
-## Contoh Masalah di Sistem IoT Greenhouse
+**Debugging** adalah proses investigasi sistematis untuk menemukan, menganalisis, dan memperbaiki masalah di dalam kode program. Debugging bukan tentang menebak secara acak, melainkan mengumpulkan bukti nyata lewat pencatatan aktivitas sistem (**Logging**).
 
-Contoh masalah yang mungkin terjadi:
+Mari kita bahas tiga pilar logging utama yang kita gunakan untuk mendebug seluruh komponen proyek Smart Greenhouse ini.
 
-- node tidak mengirim data,
-- gateway tidak mengambil threshold,
-- relay tidak menyala,
-- data di dashboard kosong,
-- API memberi error,
-- Android WebView gagal membuka halaman,
-- OTA update gagal,
-- data sensor terlihat tidak masuk akal.
+---
 
-## Langkah Debugging Umum
+## 1. Android Logcat (Proses Debugging Sisi Mobile)
 
-Gunakan urutan ini:
+Di sisi Android client ([android/MainActivity.kt.txt](file:///home/dhimasardinata/Dokumen/ta/android/MainActivity.kt.txt)), kita menggunakan utilitas kelas `android.util.Log` bawaan Android SDK untuk mengirimkan pesan log ke **Logcat** (jendela penampil log di Android Studio).
 
-1. Catat gejala.
-2. Cari komponen yang terdampak.
-3. Cek log paling dekat dengan masalah.
-4. Cek input yang masuk.
-5. Cek output yang keluar.
-6. Cek error handling.
-7. Cek dependency seperti Wi-Fi, server, database, atau sensor fisik.
-8. Uji perubahan kecil.
+Di dalam kode Android, Anda akan melihat pemanggilan log seperti berikut:
 
-## Debugging Firmware
+```kotlin
+// Mencatat token notifikasi Firebase Cloud Messaging (FCM) untuk pengujian
+Log.d("FCM_TOKEN", "Token HP ini: ${task.result}")
 
-Untuk firmware, tempat cek utama biasanya:
+// Mencatat jika terjadi error saat memuat dashboard web di dalam WebView
+override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+    super.onReceivedError(view, request, error)
+    Log.e("WEBVIEW_ERROR", "Error: ${error?.description} | URL: ${request?.url}")
+}
+```
 
-- Serial Monitor,
-- log boot,
-- status Wi-Fi,
-- nilai sensor,
-- status cache,
-- response API,
-- status relay,
-- tegangan dan wiring.
+### Cara Membaca Logcat:
+*   `Log.d` (*Debug*): Digunakan untuk mencatat informasi umum saat pengembangan (seperti token FCM).
+*   `Log.e` (*Error*): Digunakan untuk mencatat kegagalan kritis (seperti kegagalan jaringan atau URL WebView rusak).
+*   Gunakan filter pencarian di Android Studio (misal mengetikkan `tag:FCM_TOKEN` atau `tag:WEBVIEW_ERROR`) untuk menyaring baris log tertentu di tengah ribuan log sistem Android lainnya.
 
-Firmware juga bisa gagal karena memori kecil, watchdog, delay terlalu lama, atau jaringan tidak stabil.
+---
 
-## Debugging Backend
+## 2. WebSerial & WebSockets (Debugging Sisi Gateway/Node)
 
-Untuk backend, tempat cek utama:
+Karena perangkat mikrokontroler di lapangan tidak selalu terhubung ke komputer via kabel USB, kita menggunakan antarmuka **WebSerial** berbasis WebSocket untuk mengirimkan log debug nirkabel (*wireless debug logging*).
 
-- log Laravel,
-- response API,
-- status code HTTP,
-- database,
-- validasi request,
-- middleware atau autentikasi.
+Buka berkas implementasi WebSerial di [gateway/src/WebSerial.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/WebSerial.cpp) dan panel WebSocket di [gateway/src/WebSocketManager.cpp](file:///home/dhimasardinata/Dokumen/ta/gateway/src/WebSocketManager.cpp).
 
-Jika data tidak masuk database, cek apakah request benar-benar sampai ke endpoint dan apakah validasinya lolos.
+Ketika Gateway beroperasi, ia memancarkan status internalnya:
+*   Status koneksi Wi-Fi.
+*   Log pengiriman data sensor dari node lokal.
+*   Hasil dekripsi payload (berhasil dekrip teks asli atau gagal).
 
-## Debugging Frontend dan Android
+Jika Anda terhubung ke titik akses lokal Gateway (Access Point Mode) atau IP lokalnya via browser, Anda dapat membuka halaman konsol WebSerial bawaan. Halaman ini menangkap kiriman data dari WebSocket dan merendernya secara real-time pada browser konsol klien, sehingga Anda dapat mendebug perangkat tanpa perlu membongkar casing fisik atau mencolokkan kabel serial FTDI/USB.
 
-Untuk frontend, cek:
+---
 
-- browser console,
-- Network tab,
-- response API,
-- state komponen,
-- error tampilan.
+## 3. Laravel Error Logging (Debugging Sisi Server/Backend)
 
-Untuk Android WebView, cek:
+Di sisi server, semua *request* API dari Gateway dan kamera diproses oleh Laravel. Jika terjadi kesalahan koneksi database atau kegagalan pengiriman push notification FCM, Laravel mencatatnya ke dalam file log lokal.
 
-- permission internet,
-- URL yang dibuka,
-- error WebView,
-- koneksi ponsel,
-- certificate atau HTTPS jika relevan.
+Buka berkas [web/ApiController.php](file:///home/dhimasardinata/Dokumen/ta/web/ApiController.php), kita menggunakan facade `Log` untuk mencatat error penanganan database snapshot dan notifikasi kabut:
 
-## Jangan Langsung Mengubah Banyak Hal
+```php
+// Mencatat error jika query pembuatan snapshot sensor gagal
+} catch (\Exception $e) {
+    \Illuminate\Support\Facades\Log::error("Snapshot Error: " . $e->getMessage());
+}
 
-Saat debugging, jangan mengubah banyak bagian sekaligus. Jika banyak perubahan dilakukan bersamaan, sulit tahu perubahan mana yang memperbaiki masalah atau membuat masalah baru.
+// Mencatat detail kegagalan ketika mengirim Push Notification FCM ke Firebase
+} catch (\Exception $e) {
+    \Illuminate\Support\Facades\Log::error('FCM Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+}
+```
 
-## Kesimpulan
+### Cara Membaca Log Laravel:
+*   Semua kesalahan di atas ditulis ke dalam berkas log teks di server pada path `storage/logs/laravel.log`.
+*   Developer dapat memantau log secara real-time dari terminal server menggunakan perintah Linux:
+    ```bash
+    tail -f storage/logs/laravel.log
+    ```
+    Perintah ini akan menampilkan baris error baru secara instan begitu terjadi kegagalan transaksi API dari hardware.
 
-Debugging adalah mencari bukti. Pada sistem ini, bukti bisa berasal dari log firmware, API, database, browser, Android, atau perangkat fisik. Halaman file terkait mencatat cara debugging untuk file penting.
+---
 
-Kembali ke [Peta Belajar](../00-start-here/peta-belajar.md).
+## Ringkasan Alur Debugging untuk Proyek TA
+
+Jika data sensor di dashboard web tidak muncul, jangan langsung membongkar perangkat keras Anda! Ikuti urutan investigasi ini:
+1.  **Cek Log Laravel**: Apakah request API dari Gateway sampai ke server? Periksa file `laravel.log`. Jika ada tulisan `Snapshot Error`, masalahnya ada di database server.
+2.  **Cek WebSerial / Serial Monitor**: Jika tidak ada request masuk ke Laravel, hubungkan komputer ke Gateway via browser WebSerial/USB. Apakah Gateway berhasil menerima data dari Node? Apakah Gateway gagal tersambung Wi-Fi?
+3.  **Cek Android Logcat**: Jika web dashboard lancar di laptop tetapi aplikasi Android blank, buka Logcat dan filter tag `WEBVIEW_ERROR`. Periksa apakah ada masalah perizinan internet (*internet permission*) atau HTTPS certificate.
+
+Dengan memanfaatkan sistem log terpadu ini, Anda dapat memetakan letak kesalahan (*root cause*) secara akurat dan menyelesaikannya dengan cepat.
+
+---
+
+Lanjutkan ke bab berikutnya: **[File, Folder, dan Project](./file-folder-project.md)**.

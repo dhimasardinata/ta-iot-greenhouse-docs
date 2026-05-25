@@ -68,7 +68,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     <figure className="my-6 overflow-x-auto rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
       {svg ? (
         <div
-          className="docs-mermaid min-w-[640px]"
+          className="docs-mermaid"
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (

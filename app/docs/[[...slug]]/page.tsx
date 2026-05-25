@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { MarkdownView } from '@/components/MarkdownView';
 import { getDocBySlug } from '@/lib/docs';
 
@@ -36,6 +37,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <article className="mx-auto max-w-5xl">
+      <Breadcrumb />
       <MarkdownView content={page.content} slug={page.slug} />
     </article>
   );
