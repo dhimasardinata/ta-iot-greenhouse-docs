@@ -1,4 +1,4 @@
-const sourceProjectRoots = new Set(["gateway", "node"]);
+const sourceProjectRoots = new Set(["gateway", "node", "android", "web"]);
 const localProjectMarker = "/home/dhimasardinata/Dokumen/ta/";
 const walkthroughRoot = "14-complete-file-walkthrough";
 
@@ -22,8 +22,15 @@ function sourcePathPartsFromFileUrl(href: string): string[] | null {
       : decodedPath.replace(/^\/+/, "");
   const parts = relativePath.split("/").filter(Boolean);
 
-  if (parts.length < 2 || !sourceProjectRoots.has(parts[0])) {
+  if (parts.length < 1 || !sourceProjectRoots.has(parts[0])) {
     return null;
+  }
+
+  if (parts[0] === "web") {
+    if (parts[1] && parts[1].endsWith(".php")) {
+      return ["backend", "web", ...parts.slice(1)];
+    }
+    return ["web", ...parts.slice(1)];
   }
 
   return parts;

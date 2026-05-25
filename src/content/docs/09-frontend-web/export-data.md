@@ -1,26 +1,51 @@
 ---
-title: "Export Data"
+title: "Export Data Historis"
+description: "Mekanisme pengunduhan log sensor format CSV, pembuatan data Blob di sisi klien, dan jembatan interaksi (JavaScript Interface) dengan Android WebView."
 ---
 
-# Export Data
+# Export Data Historis
 
-Export data adalah fitur mengunduh data dari dashboard.
+Untuk kebutuhan analisis penelitian anggrek lebih lanjut, dashboard web menyediakan fitur untuk mengekspor (mengunduh) seluruh rekaman tabel data sensor yang tampil di layar menjadi berkas tabel **CSV**.
 
-## Status Bukti
+---
 
-File frontend export tidak terlihat di snapshot ini. Namun Android `MainActivity.kt.txt` menyiapkan handler download, termasuk blob download dari WebView.
+## 1. Pembuatan Berkas Blob di Sisi Klien (Client-Side Blob Generation)
 
-## Bukti Android
+Saat pengguna mengeklik tombol **Export CSV** pada halaman Table:
+1.  Vue.js mengumpulkan baris data yang saat ini aktif di state `finalData`.
+2.  Data disusun menjadi baris teks string dengan pemisah koma (CSV format).
+3.  String tersebut dibungkus menjadi objek **`Blob`** dengan tipe MIME `text/csv;charset=utf-8;`:
+    ```javascript
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    ```
+4.  Pada browser desktop standar, sistem membuat elemen jangkar non-fisik `<a>`, mengaitkan URL representasi blob (`URL.createObjectURL(blob)`), menyetel atribut `download` dengan nama file dinamis (misal: `data_greenhouse_1_export.csv`), memicu event klik secara terprogram, dan langsung membersihkan objek URL memori tersebut.
 
-Android WebView menambahkan JavaScript interface `AndroidBlobHandler` untuk mengubah blob base64 menjadi file di folder Downloads. Ini menunjukkan web kemungkinan punya fitur export berbasis download/blob.
+---
 
-## Yang Perlu Diverifikasi
+## 2. Jembatan Interaksi dengan Android Native (Android Javascript Interface)
 
-- tombol export berada di halaman mana,
-- format file export,
-- endpoint yang dipakai,
-- apakah memakai blob,
-- izin Android yang diperlukan,
-- error saat download gagal.
+Ketika dashboard web dibuka di dalam aplikasi Android native menggunakan komponen **WebView**, pengunduhan objek blob secara standar akan diblokir oleh sistem keamanan sandbox Android:
 
-Lanjutkan ke [Controlling Threshold](./controlling-threshold.md).
+```mermaid
+graph TD
+    Click[Klik Export di Web] --> CheckAgent{Apakah di Android WebView?}
+    CheckAgent -- Tidak --> WebDownload[Download standar via Browser: URL.createObjectURL]
+    CheckAgent -- Ya --> Base64[Ubah Blob menjadi String Base64]
+
+    Base64 --> JSInterface[Panggil window.AndroidBlobHandler.handleBlob]
+    JSInterface --> Android[Android Native decode Base64 ke Byte Array]
+    Android --> SaveFile[Simpan berkas ke folder /Downloads ponsel & Picu Notifikasi]
+```
+
+### Mekanisme Pengiriman Data via Bridge:
+Untuk mengatasi keterbatasan WebView, frontend mendeteksi keberadaan objek antarmuka **`AndroidBlobHandler`** yang diinjeksikan secara native oleh aplikasi Android:
+1.  Web mengonversi berkas Blob CSV menjadi string representasi data terenkode **Base64**.
+2.  Web memanggil fungsi penghubung:
+    ```javascript
+    if (window.AndroidBlobHandler) {
+        window.AndroidBlobHandler.handleBlob(base64Data, 'text/csv', fileName);
+    }
+    ```
+3.  Aplikasi Android native (diimplementasikan pada kelas `MainActivity` Android) menangkap string tersebut, mendekodekannya kembali menjadi berkas mentah, menulisnya secara fisik ke penyimpanan ponsel `Environment.DIRECTORY_DOWNLOADS`, dan memunculkan notifikasi sistem unduhan selesai.
+
+Lanjutkan ke bagian **[API Integration](./api-integration.md)** untuk mempelajari bagaimanakah data mengalir di balik antarmuka ini.

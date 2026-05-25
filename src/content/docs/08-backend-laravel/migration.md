@@ -1,30 +1,56 @@
 ---
 title: "Migration"
+description: "Rancangan migration minimum yang konsisten dengan controller backend yang tersedia."
 ---
 
 # Migration
 
-Migration adalah file Laravel untuk membuat atau mengubah struktur tabel database.
+File migration Laravel tidak ada di snapshot source `web/`, tetapi controller menunjukkan struktur minimum yang harus disediakan database. Bagian ini melengkapi rancangan migration dari kebutuhan runtime controller, bukan dari tebakan nama file migration.
 
-## Status Bukti
+## Urutan Pembuatan Tabel
 
-Inventory awal tidak menemukan file migration. Karena itu struktur tabel lengkap belum bisa dipastikan dari migration.
+Urutan aman untuk menyiapkan database:
 
-## Tabel yang Tersirat dari Controller
+1. `greenhouses`
+2. `sensors`
+3. `sensor_data`
+4. `sensor_snapshots`
+5. `device_statuses`
+6. `schedules`
+7. `camera_data`
+8. `firmware_files`
+9. `users`, jika dashboard web memakai login berbasis session
 
-Controller menyebut tabel atau model:
+`greenhouses` dan `sensors` perlu dibuat lebih awal karena controller memakai `gh_id` dan `sensor_id` hampir di semua jalur data.
 
-- `sensors`
-- `sensor_data`
-- `sensor_snapshots`
-- `camera_data`
-- `device_statuses`
-- `schedules`
-- `greenhouses`
-- tabel firmware melalui `FirmwareFile`
+## Constraint Minimum
 
-## Batas Kejujuran
+`sensor_snapshots` perlu memiliki unique key:
 
-Kolom, tipe data, index, foreign key, dan constraint dianggap final jika migration atau schema tersedia sebagai bukti.
+```sql
+UNIQUE KEY sensor_snapshots_sensor_node_unique (sensor_id, node_id)
+```
 
-Lanjutkan ke [Middleware](./middleware.md).
+Kunci ini mendukung dua jalur kode:
+
+- `DB::table('sensor_snapshots')->updateOrInsert(...)` di `saveSensorData()`.
+- `ON DUPLICATE KEY UPDATE` di `ensureSensorSnapshotsReady()` dan `get_average_sensor_data()`.
+
+`device_statuses` sebaiknya memiliki unique key pada `gh_id` agar heartbeat gateway selalu memperbarui baris yang sama:
+
+```sql
+UNIQUE KEY device_statuses_gh_unique (gh_id)
+```
+
+## Data Awal
+
+Seeder minimum perlu membuat greenhouse dan sensor yang dipakai mapping controller:
+
+| Nama Sensor | Dipakai Sebagai |
+|---|---|
+| `Temperature` | `temperature`, kontrol blower |
+| `Humidity` | `humidity`, kontrol exhaust/dehumidifier |
+| `Light Intensity` | `light_intensity` / `lux`, heatmap cahaya |
+| `RSSI` | kualitas sinyal node |
+
+Lanjutkan ke [Database Schema](./database-schema.md).

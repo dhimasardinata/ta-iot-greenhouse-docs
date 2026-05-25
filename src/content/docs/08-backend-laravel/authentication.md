@@ -1,31 +1,38 @@
 ---
 title: "Authentication"
+description: "Peta autentikasi yang konsisten dengan controller Laravel dan firmware yang ada di snapshot repo."
 ---
 
 # Authentication
 
-Authentication adalah proses memastikan siapa pengguna atau perangkat yang mengakses sistem.
+Autentikasi sistem perlu dibaca dari dua sisi: perangkat mengirim identitas dan token, lalu backend Laravel harus memutuskan apakah request diterima sebelum masuk ke controller. Di snapshot ini, firmware node/gateway sudah menyiapkan header keamanan, sedangkan controller PHP yang terlihat masih berfokus pada validasi body, penyimpanan data, cache, dan response JSON.
 
-## Bukti dari Kode
+## Jalur Perangkat ke Backend
 
-Snapshot controller tidak memperlihatkan guard auth lengkap. Namun firmware gateway dan node memakai token/API config, dan controller OTA/endpoint hardware menerima request yang seharusnya dilindungi.
+Perangkat dapat membawa identitas melalui beberapa mekanisme:
 
-## Area yang Perlu Diperiksa
+- `Authorization: Bearer <token>` terlihat pada firmware gateway dan node saat mengirim request HTTP.
+- `X-Device-ID` dikirim sebagai identitas perangkat.
+- `X-Signature` dapat dikirim oleh firmware node untuk payload yang ditandatangani.
 
-- auth user web,
-- token perangkat node/gateway,
-- endpoint upload firmware,
-- endpoint simpan sensor,
-- endpoint update threshold,
-- endpoint device status,
-- middleware route.
+Rumus konseptual tanda tangan payload adalah:
 
-## Risiko
+$$
+\text{signature} = \operatorname{HMAC}_{SHA256}(\text{token}, \text{canonical payload})
+$$
 
-Jika endpoint hardware atau upload firmware tidak dilindungi, pihak luar bisa mengirim data palsu, mengubah threshold, atau mengunggah firmware yang tidak diinginkan.
+Di sisi Laravel, pemeriksaan token/signature sebaiknya ditempatkan di middleware API sebelum request masuk ke `ApiController::saveSensorData()`, `ApiController::postDeviceStatus()`, atau `OtaController::getFirmwareInfo()`. Dengan begitu controller tetap sederhana, sementara kebijakan keamanan berada di satu lapisan yang konsisten.
 
-## Status
+## Perilaku Controller yang Terlihat
 
-Belum terlihat dari kode route/middleware pada snapshot ini.
+`ApiController::saveSensorData()` memvalidasi `gh_id` dan `node_id`, lalu menyimpan nilai sensor yang ada di body request. Method ini tidak membaca `Authorization`, `X-Device-ID`, atau `X-Signature` secara langsung.
+
+`OtaController::uploadFirmware()` memvalidasi `status`, `version`, file `.bin`, dan `node_id`/`sensor_id`. Method ini menyimpan file firmware dan metadata versi, lalu mengaktifkan satu firmware per node jika `status = true`.
+
+`ScheduleController::saveSchedules()` memakai validator Laravel untuk membatasi payload jadwal, termasuk maksimal empat jadwal per greenhouse dan mode aktuator hanya `on`, `off`, atau `threshold`.
+
+## Jalur Admin Web
+
+Halaman dashboard dirender melalui `PageController` dengan Inertia. File login, route web, dan middleware auth lengkap tidak ada di potongan `web/` yang terlihat, sehingga dokumentasi ini hanya menyebut kebutuhan session auth Laravel secara umum. Untuk implementasi lengkap, route dashboard seperti `/monitoring`, `/heatmap`, `/table`, `/camera`, dan `/controlling` perlu diletakkan di balik session auth Laravel.
 
 Lanjutkan ke [API Sensor](./api-sensor.md).

@@ -1,28 +1,37 @@
 ---
 title: "Overview Database"
+description: "Gambaran tabel database berdasarkan pemakaian nyata di controller backend."
 ---
 
 # Overview Database
 
-Database menyimpan data greenhouse, sensor, snapshot sensor, jadwal, status perangkat, kamera, dan firmware.
+Database menyimpan data historis sensor, snapshot terbaru, jadwal, status gateway, kamera, dan firmware OTA. Daftar tabel di bawah disusun dari tabel yang dipakai controller backend.
 
-## Status Bukti
+| Nama Tabel | Peran Utama | Bukti Pemakaian |
+|---|---|---|
+| [greenhouses](./tabel-greenhouses.md) | Daftar rumah kaca. | `Greenhouse::select(...)`, validasi `exists:greenhouses,id`. |
+| [sensors](./tabel-sensors.md) | Metadata sensor dan threshold. | `DB::table('sensors')`, `Sensor::whereIn(...)`. |
+| [sensor_data](./tabel-sensor-data.md) | Log historis pembacaan sensor. | `DB::table('sensor_data')->insert(...)`. |
+| [sensor_snapshots](./tabel-sensor-snapshots.md) | Nilai terakhir per sensor-node. | `updateOrInsert`, `ON DUPLICATE KEY UPDATE`. |
+| [device_statuses](./tabel-device-statuses.md) | Heartbeat dan status relay gateway. | `DB::table('device_statuses')->updateOrInsert(...)`. |
+| [schedules](./tabel-schedules.md) | Jadwal aktuator. | `Schedule::where(...)`, `Schedule::create(...)`. |
+| `camera_data` | Gambar kamera dan status kabut. | `DB::table('camera_data')->insert(...)`. |
+| `firmware_files` | Metadata firmware OTA. | `FirmwareFile::updateOrCreate(...)`. |
+| [users](./tabel-users.md) | Akun admin jika login dashboard aktif. | Dibutuhkan oleh auth web, tetapi file auth tidak ada di snapshot. |
 
-Inventory awal tidak menemukan file migration atau SQL. Tabel yang dijelaskan di bagian ini berasal dari controller Laravel dan belum memuat tipe data/constraint final.
+## Pola Baca/Tulis
 
-## Tabel yang Terlihat dari Kode
+Data sensor ditulis ganda:
 
-- `greenhouses`
-- `sensors`
-- `sensor_data`
-- `sensor_snapshots`
-- `schedules`
-- `device_statuses`
-- `camera_data`
-- tabel model `FirmwareFile` yang nama tabel fisiknya belum terkonfirmasi.
+1. `sensor_data` menyimpan histori.
+2. `sensor_snapshots` menyimpan nilai terakhir untuk monitoring dan heatmap.
 
-## Prinsip Dokumentasi
+Rata-rata snapshot dapat diringkas sebagai:
 
-Jika migration belum tersedia, jangan mengarang tipe data, foreign key, atau index. Tulis berdasarkan query yang terbukti.
+$$
+\overline{x} = \frac{x_1 + x_2 + \cdots + x_n}{n}
+$$
+
+Controller mengimplementasikannya dengan `AVG(ss.value)`.
 
 Lanjutkan ke [ERD](./erd.md).

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import katex from 'katex';
 import { codeToHtml } from 'shiki';
 
 import { MermaidDiagram } from '@/components/MermaidDiagram';
@@ -78,12 +79,21 @@ function isSpecialLine(line: string): boolean {
   return (
     /^#{1,6}\s+/.test(line) ||
     /^\s*```/.test(line) ||
+    /^\s*\$\$/.test(line) ||
     /^\s*---+\s*$/.test(line) ||
     /^\s*[-*]\s+/.test(line) ||
     /^\s*\d+\.\s+/.test(line) ||
     /^\s*>/.test(line) ||
     /^\s*\|/.test(line)
   );
+}
+
+function renderMathHtml(value: string, displayMode: boolean): string {
+  return katex.renderToString(value, {
+    displayMode,
+    strict: false,
+    throwOnError: false,
+  });
 }
 
 function Inline({
@@ -94,7 +104,7 @@ function Inline({
   text: string;
 }): ReactNode {
   const parts = text.split(
-    /(<br\s*\/>|`[^`]+`|\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\([^)]+\))/g,
+    /(<br\s*\/>|`[^`]+`|\\\([^\n]+?\\\)|\$[^$\n]+\$|\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\([^)]+\))/g,
   );
 
   return (
@@ -110,6 +120,28 @@ function Inline({
             >
               {part.slice(1, -1)}
             </code>
+          );
+        }
+        if (part.startsWith('\\(') && part.endsWith('\\)')) {
+          return (
+            <span
+              className="docs-math-inline"
+              dangerouslySetInnerHTML={{
+                __html: renderMathHtml(part.slice(2, -2), false),
+              }}
+              key={index}
+            />
+          );
+        }
+        if (part.startsWith('$') && part.endsWith('$')) {
+          return (
+            <span
+              className="docs-math-inline"
+              dangerouslySetInnerHTML={{
+                __html: renderMathHtml(part.slice(1, -1), false),
+              }}
+              key={index}
+            />
           );
         }
         if (part.startsWith('**') && part.endsWith('**')) {
@@ -226,6 +258,43 @@ export async function MarkdownView({ content, slug }: MarkdownViewProps) {
           key: nodes.length,
           language,
         }),
+      );
+      continue;
+    }
+
+    if (/^\s*\$\$/.test(trimmed)) {
+      const singleLine = trimmed.match(/^\$\$(.+)\$\$$/);
+      const math: string[] = [];
+
+      if (singleLine) {
+        math.push(singleLine[1].trim());
+        index += 1;
+      } else {
+        const firstLine = trimmed.slice(2).trim();
+        if (firstLine) math.push(firstLine);
+        index += 1;
+
+        while (index < lines.length && !lines[index].trim().startsWith('$$')) {
+          math.push(lines[index]);
+          index += 1;
+        }
+
+        if (index < lines.length) {
+          const closingLine = lines[index].trim();
+          const tail = closingLine.slice(2).trim();
+          if (tail) math.push(tail);
+          index += 1;
+        }
+      }
+
+      nodes.push(
+        <div
+          className="docs-math-block my-6 overflow-x-auto"
+          dangerouslySetInnerHTML={{
+            __html: renderMathHtml(math.join('\n'), true),
+          }}
+          key={nodes.length}
+        />,
       );
       continue;
     }

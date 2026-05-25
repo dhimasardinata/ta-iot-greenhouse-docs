@@ -23,6 +23,15 @@
   min-height: 1.5rem;
 }
 
+.docs-math-inline {
+  white-space: nowrap;
+}
+
+.docs-math-block .katex-display {
+  margin: 0;
+  padding: 0.25rem 0;
+}
+
 :is(.dark, [data-theme='dark']) .docs-code .shiki,
 :is(.dark, [data-theme='dark']) .docs-code .shiki span {
   background-color: var(--shiki-dark-bg) !important;

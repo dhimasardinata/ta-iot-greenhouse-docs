@@ -1,28 +1,39 @@
 ---
-title: "Login"
+title: "Login Halaman Dashboard"
+description: "Kebutuhan login dashboard dan batas bukti source frontend yang tersedia."
 ---
 
-# Login
+# Login Halaman Dashboard
 
-Halaman login web belum terlihat sebagai file source dalam snapshot inventory awal.
+Snapshot frontend web yang tersedia hanya memuat `Controlling.vue` dan `Heatmap.vue`. File login seperti `Auth/Login.vue` tidak ada di potongan source ini, sehingga halaman ini menjelaskan kebutuhan login dashboard berdasarkan alur Laravel/Inertia yang harus mengitari halaman monitoring dan controlling.
 
-## Status Bukti
+## Kebutuhan Login
 
-Tidak ada file Vue login yang ditemukan di folder `web/`. Namun Android WebView membuka `https://ta.atomic.web.id/`, sehingga login kemungkinan berada di aplikasi web lengkap yang tidak seluruhnya masuk snapshot ini.
+Dashboard mengubah threshold, jadwal, dan konfigurasi operasional greenhouse. Karena itu route web seperti `/monitoring`, `/heatmap`, `/table`, `/camera`, dan `/controlling` perlu dilindungi session auth di Laravel penuh.
 
-## Yang Perlu Dicari Nanti
+## Alur yang Diperlukan
 
-Jika file login tersedia, halaman login menjelaskan:
+```mermaid
+sequenceDiagram
+    participant Admin as Browser Admin
+    participant Login as Form Login
+    participant Laravel as Laravel Auth
+    participant Dashboard as Halaman Dashboard
 
-- form login,
-- API auth,
-- session/cookie/token,
-- error jika kredensial salah,
-- redirect setelah login,
-- proteksi route dashboard.
+    Admin->>Login: Isi email dan password
+    Login->>Laravel: POST /login
+    alt Kredensial valid
+        Laravel-->>Admin: Set session cookie
+        Admin->>Dashboard: Buka halaman dashboard
+    else Kredensial salah
+        Laravel-->>Login: Kembalikan pesan error
+    end
+```
 
-## Catatan
+## Hubungan dengan File yang Terlihat
 
-Jangan mengarang mekanisme login sebelum file auth atau route tersedia.
+`Controlling.vue` memanggil API untuk menyimpan threshold dan jadwal. Jika halaman ini tidak dilindungi auth, pengguna tidak sah dapat mengubah perilaku aktuator. Jadi kontrol akses harus dipasang di route web dan API yang menerima perubahan.
 
-Lanjutkan ke [Monitoring](./monitoring.md).
+`Heatmap.vue` lebih bersifat monitoring, tetapi tetap menampilkan data operasional greenhouse. Pada deployment nyata, aksesnya sebaiknya mengikuti kebijakan login yang sama.
+
+Lanjutkan ke [Export Data](./export-data.md).

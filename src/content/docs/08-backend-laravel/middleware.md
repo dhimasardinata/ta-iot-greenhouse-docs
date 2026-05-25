@@ -1,30 +1,34 @@
 ---
 title: "Middleware"
+description: "Lapisan middleware yang perlu mengitari controller agar validasi perangkat, session web, dan cache tetap rapi."
 ---
 
 # Middleware
 
-Middleware adalah lapisan yang memproses request sebelum sampai ke controller atau sebelum response dikirim.
+Controller di folder `web/` sudah menangani data inti, tetapi autentikasi dan pembatasan akses sebaiknya tidak ditaruh di setiap method controller. Middleware adalah tempat yang lebih tepat untuk aturan lintas endpoint.
 
-## Status Bukti
+## Middleware API Perangkat
 
-File middleware tidak terlihat di snapshot awal. Controller juga tidak memperlihatkan langsung middleware route yang dipakai.
+Firmware gateway dan node dapat mengirim `Authorization: Bearer ...`, `X-Device-ID`, dan pada jalur tertentu `X-Signature`. Middleware API dapat melakukan empat pekerjaan sebelum request masuk ke controller:
 
-## Middleware yang Mungkin Relevan
+1. Membaca identitas perangkat dari `X-Device-ID`.
+2. Memvalidasi token bearer terhadap token perangkat yang disimpan server.
+3. Jika signature dipakai, menghitung ulang HMAC payload dan membandingkannya secara constant-time.
+4. Menolak request yang gagal sebelum `saveSensorData()`, `postDeviceStatus()`, atau endpoint OTA menjalankan operasi database.
 
-Secara konsep Laravel, middleware bisa dipakai untuk:
+## Middleware Web Dashboard
 
-- autentikasi user,
-- token API,
-- rate limiting,
-- CSRF protection,
-- role/permission,
-- logging request.
+`PageController` merender halaman Inertia seperti `Monitoring`, `Heatmap`, `Table`, `Camera`, dan `Controlling`. Route web untuk halaman ini sebaiknya berada di grup session auth agar hanya admin yang dapat membuka dashboard dan mengubah threshold/jadwal.
 
-Namun detail middleware sistem ini belum terkonfirmasi dari kode.
+## Pembagian Tanggung Jawab
 
-## Catatan untuk File-by-File
+| Lapisan | Tanggung Jawab |
+|---|---|
+| Middleware API | Identitas perangkat, bearer token, signature, rate limit. |
+| Controller API | Validasi payload, query database, cache invalidation, response JSON. |
+| Middleware Web | Session pengguna dan redirect login. |
+| PageController | Menyiapkan props Inertia dan data dashboard. |
 
-Jika route/middleware nanti ditemukan, halaman middleware menjelaskan endpoint mana yang dilindungi dan siapa yang boleh mengaksesnya.
+Dengan pemisahan ini, dokumentasi controller tetap sesuai source, sementara kebutuhan keamanan produksi tetap lengkap dan jelas tempat implementasinya.
 
-Lanjutkan ke [Authentication](./authentication.md).
+Lanjutkan ke [Model](./model.md).
