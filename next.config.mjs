@@ -4,7 +4,7 @@ import { createMDX } from 'fumadocs-mdx/next';
 const config = {
   reactStrictMode: true,
   outputFileTracingIncludes: {
-    '/api/search': ['./src/content/docs/**/*'],
+    '/api/find-docs': ['./src/content/docs/**/*'],
     '/docs/[[...slug]]': ['./src/content/docs/**/*'],
   },
 };

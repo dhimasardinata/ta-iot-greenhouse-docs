@@ -50,7 +50,7 @@ export function DocsSearch({
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/search?q=${encodeURIComponent(trimmed)}`,
+          `/api/find-docs?q=${encodeURIComponent(trimmed)}`,
           {
             signal: controller.signal,
           },
