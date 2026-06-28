@@ -133,7 +133,6 @@ export function MobileDocsNav({ nodes }: MobileDocsNavProps) {
                 compact
                 nodes={nodes}
                 onNavigate={() => setOpen(false)}
-                searchAutoFocus
                 searchId="mobile-docs-search"
               />
             </div>

@@ -92,7 +92,7 @@ export function DocsSearch({
         />
         <input
           autoFocus={autoFocus}
-          className="h-12 w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-3 text-sm text-zinc-950 outline-none ring-0 placeholder:text-zinc-400 focus:border-emerald-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-emerald-400"
+          className="h-12 w-full rounded-xl border border-zinc-200/80 bg-zinc-50/50 backdrop-blur-xs pl-10 pr-3 text-base md:text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:bg-white focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/10 dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:text-zinc-50 dark:focus:bg-zinc-950 dark:focus:border-emerald-500 transition-all duration-200"
           id={inputId}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Cari modul, file, atau konsep"
@@ -102,7 +102,7 @@ export function DocsSearch({
       </div>
 
       {trimmed.length >= 2 ? (
-        <div className="max-h-80 overflow-y-auto rounded-lg border border-zinc-200 bg-white text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="max-h-80 overflow-y-auto rounded-xl border border-zinc-200/80 bg-white p-1 text-sm shadow-lg shadow-emerald-950/5 dark:border-zinc-800/80 dark:bg-zinc-950">
           {loading ? (
             <p className="px-3 py-3 text-zinc-500 dark:text-zinc-400">
               Mencari...
@@ -112,21 +112,21 @@ export function DocsSearch({
               Tidak ada hasil.
             </p>
           ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-900">
+            <ul className="divide-y divide-zinc-100/50 dark:divide-zinc-900/50">
               {results.map((result) => (
                 <li key={result.url}>
                   <Link
-                    className="block px-3 py-3 hover:bg-zinc-100 active:bg-zinc-200 dark:hover:bg-zinc-900 dark:active:bg-zinc-800"
+                    className="block rounded-lg px-3.5 py-2.5 transition-colors hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 text-zinc-700 hover:text-emerald-900 dark:text-zinc-300 dark:hover:text-emerald-100"
                     href={result.url}
                     onClick={() => {
                       setQuery("");
                       onNavigate?.();
                     }}
                   >
-                    <span className="block font-medium text-zinc-950 dark:text-zinc-50">
+                    <span className="block font-semibold text-zinc-950 dark:text-zinc-50 text-[13px]">
                       {result.title}
                     </span>
-                    <span className="mt-1 block max-h-10 overflow-hidden text-xs leading-5 text-zinc-600 dark:text-zinc-400">
+                    <span className="mt-1 block max-h-12 overflow-hidden text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                       {excerpt(result.content)}
                     </span>
                   </Link>
