@@ -77,8 +77,8 @@ export function MobileDocsNav({ nodes }: MobileDocsNavProps) {
             onClick={() => setOpen(false)}
             type="button"
           />
-          <aside
-            className="mobile-drawer-panel absolute inset-y-0 left-0 flex w-[22rem] max-w-[calc(100vw-2rem)] flex-col rounded-r-2xl border-r border-zinc-200/80 bg-white/95 backdrop-blur-md shadow-2xl shadow-emerald-950/5 dark:border-zinc-800/85 dark:bg-zinc-950/95"
+           <aside
+            className="mobile-drawer-panel absolute inset-0 flex w-full max-w-full flex-col bg-white dark:bg-zinc-950"
             id="mobile-docs-nav"
           >
             {/* Branded Drawer Header */}

@@ -39,7 +39,7 @@ export function DocsSearch({
   const trimmed = useMemo(() => query.trim(), [query]);
 
   useEffect(() => {
-    if (trimmed.length < 2) {
+    if (trimmed.length < 1) {
       setResults([]);
       setLoading(false);
       return;
@@ -101,7 +101,7 @@ export function DocsSearch({
         />
       </div>
 
-      {trimmed.length >= 2 ? (
+      {trimmed.length >= 1 ? (
         <div className="max-h-80 overflow-y-auto rounded-xl border border-zinc-200/80 bg-white p-1 text-sm shadow-lg shadow-emerald-950/5 dark:border-zinc-800/80 dark:bg-zinc-950">
           {loading ? (
             <p className="px-3 py-3 text-zinc-500 dark:text-zinc-400">

@@ -161,7 +161,7 @@ export function getNavTree(): NavNode[] {
 
 export async function searchDocs(query: string): Promise<DocEntry[]> {
   const needle = query.trim().toLowerCase();
-  if (needle.length < 2) {
+  if (needle.length < 1) {
     return [];
   }
 
